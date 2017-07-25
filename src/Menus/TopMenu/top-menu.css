@@ -1,0 +1,123 @@
+#top-container {
+    background-color: #eaeaea;
+    width:100%;
+    height:5%;
+    /*position:fixed;*/
+    top:0;
+    left:0;
+    z-index:100;
+    user-select:none;
+}
+
+#logo-wrapper{
+    position:relative;
+    float:left;
+    height:80%;
+    width:auto;
+    display:inline-block;
+    top:50%;
+    transform:translateY(-50%);
+    margin-right:2%;
+    margin-left:1%;
+
+}
+
+.top-menu-logo{
+    height:100%;
+    position:relative;
+    float:left;
+}
+.top-menu-img{
+    height:100%;
+    position:relative;
+    float:left;
+    -webkit-transition: transform 200ms;
+    -moz-transition: transform 200ms;
+    -ms-transition: transform 200ms;
+    -o-transition: transform 200ms;
+    transition: transform 200ms;
+}
+
+.top-menu-img:hover{
+    transform:scale(1.2);
+    cursor:pointer;
+}
+
+.button-wrapper{
+    position:relative;
+    float:left;
+    height:60%;
+    width:auto;
+    display:inline-block;
+    top:50%;
+    transform:translateY(-50%);
+    margin:0 0.3%;
+}
+#input-load{
+    display:none;
+}
+
+
+#minusP-wrapper{
+    margin-left:10%;
+    height:40%;
+}
+#plusP-wrapper{
+    height:40%;
+    margin-right:10%;
+}
+.player-number-wrapper{
+    margin:0;
+    cursor:default;
+}
+
+.player{
+    position: relative;
+    /*float:center;*/
+    width: auto;
+    height: 120%;
+    left:50%;
+    top:50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+#player-number{
+    position:absolute;
+    font-size: 0.9em;
+    text-align: center;
+    font-family: Arial Black, serif;
+    color: #fbfffb;
+    left:50%;
+    top:85%;
+    transform: translateX(-50%) translateY(-50%);
+    backface-visibility: hidden;
+}
+
+.tooltip{
+    visibility: hidden;
+    font-size:1em;
+    white-space:nowrap;
+    top:50%;
+    left:50%;
+    transform: translateX(-50%) translateY(100%);
+    background-color: #ffffcc;
+    color: black;
+    text-align:center;
+    padding: 5px;
+    position:absolute;
+    z-index: 200;
+    opacity:0;
+    transition: opacity 300ms linear;
+    transition-delay:700ms;
+    backface-visibility: hidden;
+    border: 1px solid black;
+}
+
+.button-wrapper:hover .tooltip{
+    visibility:visible;
+    opacity:1;
+}
+
+#random-payoffs-wrapper{
+    margin-left:10%;
+}

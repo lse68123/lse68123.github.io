@@ -52,6 +52,7 @@ var GTE;
         Tree.prototype.addISet = function (player, nodes) {
             var iSet = new GTE.ISet(player, nodes);
             this.iSets.push(iSet);
+            return iSet;
         };
         /** Removes an iSet from the list of isets*/
         Tree.prototype.removeISet = function (iSet) {
@@ -78,12 +79,16 @@ var GTE;
                     node.parentMove.destroy();
                 }
                 this.nodes.splice(this.nodes.indexOf(node), 1);
-                if (node.parent && node.parent.iSet) {
-                    if (node.parent.iSet.nodes.length <= 2) {
-                        this.iSets.splice(this.iSets.indexOf(node.iSet), 1);
-                    }
-                    node.parent.iSet.removeNode(node.parent);
-                }
+                // if (node.parent && node.parent.iSet) {
+                //     if (node.parent.iSet.nodes.length <= 2) {
+                //         this.iSets.splice(this.iSets.indexOf(node.parent.iSet), 1);
+                //         node.parent.iSet.destroy();
+                //     }
+                //     else {
+                //         node.parent.iSet.removeNode(node.parent);
+                //     }
+                //
+                // }
                 node.destroy();
             }
         };
@@ -96,6 +101,15 @@ var GTE;
             node.addChild(child);
             this.nodes.push(child);
             this.moves.push(child.parentMove);
+        };
+        Tree.prototype.getMaxDepth = function () {
+            var maxDepth = 0;
+            this.nodes.forEach(function (n) {
+                if (n.depth > maxDepth) {
+                    maxDepth = n.depth;
+                }
+            });
+            return maxDepth;
         };
         /**Depth first search on the nodes of the tree*/
         Tree.prototype.DFSOnTree = function () {
@@ -152,6 +166,14 @@ var GTE;
             }
             if (this.checkIfNodesSharePathToRoot(nodes)) {
                 throw new Error(GTE.SAME_PATH_ON_ROOT_ERROR_TEXT);
+            }
+        };
+        Tree.prototype.cleanISets = function () {
+            for (var i = 0; i < this.iSets.length; i++) {
+                if (this.iSets[i].nodes.length <= 1 || !this.checkNumberOfChildren(this.iSets[i].nodes)) {
+                    this.removeISet(this.iSets[i]);
+                    i--;
+                }
             }
         };
         /**A method for checking whether the game has perfect recall.*/

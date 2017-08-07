@@ -28,9 +28,14 @@ var GTE;
             this.game.load.image("scissors", "src/Assets/Images/HoverMenu/Scissors.png");
             this.game.load.image("unlink", "src/Assets/Images/HoverMenu/Unlink.png");
             this.game.load.image("chance", "src/Assets/Images/HoverMenu/Chance.png");
+            this.game.load.image("zoomIn", "src/Assets/Images/Misc/zoom-in.png");
+            this.game.load.image("zoomIn", "src/Assets/Images/Misc/zoom-out.png");
+            this.game.load.image("zoomOut", "src/Assets/Images/Misc/zoom-out.png");
+            this.game.load.image("close", "src/Assets/Images/TopMenu/close-info.png");
         };
         Boot.prototype.create = function () {
             var _this = this;
+            this.appendHTMLandCSS();
             this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
             this.createTextures();
             this.radius = this.game.height * GTE.INTRO_RADIUS;
@@ -49,6 +54,18 @@ var GTE;
             this.game.time.events.add(1200, function () {
                 _this.game.state.start("MainScene");
             });
+        };
+        Boot.prototype.appendHTMLandCSS = function () {
+            $.get("src/Menus/TopMenu/top-menu.html", function (data) {
+                $('body').append(data);
+            });
+            var css1 = "<link rel=\"stylesheet\" href=\"src/Menus/TopMenu/top-menu.css\" type=\"text/css\"/>";
+            $('head').append(css1);
+            $.get("src/Menus/LabelInput/label-input.html", function (data) {
+                $('body').append(data);
+            });
+            var css2 = "<link rel=\"stylesheet\" href=\"src/Menus/LabelInput/label-input.css\" type=\"text/css\"/>";
+            $('head').append(css2);
         };
         Boot.prototype.createText = function () {
             this.text = this.game.add.text(this.point1.x + this.distance * 3, this.point1.y + this.distance / 2, "GTE", { font: "26px Arial" }, this.logoGroup);

@@ -6,12 +6,10 @@ module GTE{
     export class ISet{
         player: Player;
         nodes: Array<Node>;
-        label:string;
 
         constructor(player?:Player, nodes?:Array<Node>){
             this.player = player;
             this.nodes = [];
-            this.label = "";
             if(nodes) {
                 nodes.forEach(n => {
                     this.addNode(n);
@@ -40,20 +38,11 @@ module GTE{
             }
         }
 
-
         changePlayer(player:Player){
             this.player = player;
-            this.nodes.forEach(n=>{
-                n.convertToLabeled(player);
-            })
-        }
-
-        addLabel(label:string){
-            this.label = label;
-        }
-
-        removeLabel(){
-            this.label = "";
+            if(this.nodes[0]){
+                this.nodes[0].convertToLabeled(player);
+            }
         }
 
         /**The destroy method ensures that there are no memory-leaks */

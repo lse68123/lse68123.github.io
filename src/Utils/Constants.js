@@ -5,15 +5,21 @@ var GTE;
     GTE.INTRO_RADIUS = 0.018;
     GTE.INTRO_TWEEN_DURATION = 200;
     GTE.INTRO_TEXT_SIZE = 0.15;
+    GTE.INITIAL_TREE_WIDTH = 0.5;
+    GTE.INITIAL_TREE_HEIGHT = 0.2;
     //Node Constants
     GTE.NODE_RADIUS = 0.03;
     GTE.NODE_SCALE = 3;
-    GTE.LINE_WIDTH = 0.005;
-    GTE.LABEL_SIZE = 1.5;
+    GTE.LINE_WIDTH = 0.004;
+    GTE.LABEL_SIZE = 1.3;
+    GTE.PAYOFF_SIZE = 1.1;
     GTE.HOVER_COLOR = 0x555555;
     GTE.HOVER_CHILDREN_COLOR = 0xaaaaaa;
     GTE.NODE_SELECTED_COLOR = 0x004991;
     GTE.PLAYER_COLORS = [0xff0000, 0x0000ff, 0x00ff00, 0xff00ff];
+    GTE.NODES_MANUAL_POS_ERROR_TEXT = "Only a single selected node can be moved!";
+    GTE.NODES_VERTICAL_STEP_POSITIONING = 0.25;
+    GTE.NODES_HORIZONTAL_STEP_POSITIONING = 0.25;
     //Selection Rectangle Constants
     GTE.SELECTION_INNER_COLOR = 0x0389df;
     GTE.SELECTION_BORDER_COLOR = 0x000fff;
@@ -43,8 +49,9 @@ var GTE;
     GTE.CELL_STROKE_WIDTH = 0.05;
     GTE.CELL_NUMBER_SIZE = 0.3;
     GTE.PLAYER_TEXT_SIZE = 0.35;
-    GTE.MOVES_OFFSET = 0.05;
+    GTE.MOVES_OFFSET = 0.1;
     GTE.MOVES_TEXT_SIZE = 0.25;
     GTE.STRATEGIC_PLAYERS_ERROR_TEXT = "Strategic form only available for 2 players!";
+    GTE.STRATEGIC_NOT_LABELED_ERROR_TEXT = "Not all nodes are owned or chance!";
 })(GTE || (GTE = {}));
 //# sourceMappingURL=Constants.js.map

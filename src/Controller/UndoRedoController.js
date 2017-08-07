@@ -42,9 +42,6 @@ var GTE;
             });
             this.treeController.treeView.drawLabels();
             this.treeController.attachHandlersToNodes();
-            this.treeController.treeView.iSets.forEach(function (iSetV) {
-                _this.treeController.attachHandlersToISet(iSetV);
-            });
         };
         UndoRedoController.prototype.saveNewTree = function () {
             this.treesList.splice(this.currentTreeIndex + 1, this.treesList.length);

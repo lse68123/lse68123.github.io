@@ -38,7 +38,6 @@ module GTE {
             this.createButtonSprites();
             this.setButtonFunctionality();
 
-            console.log(this.plusButton.width);
             this.buttonWidth = this.plusButton.width;
 
             let nodeWidth = this.userActionController.treeController.treeView.nodes[0].width;
@@ -122,10 +121,10 @@ module GTE {
                     this.userActionController.addNodesHandler(this.previouslyHoveredSprite);
                 }
                 else if (this.previouslyHoveredSprite instanceof ISetView) {
-                    let nodes = (<ISetView>this.previouslyHoveredSprite).nodes;
-                    nodes.forEach(n => {
-                        this.userActionController.addNodesHandler(n);
-                    });
+                    //A hack in order not to break the information set.
+                    this.userActionController.treeController.selectedNodes = (<ISetView>this.previouslyHoveredSprite).nodes.slice(0);
+                    this.userActionController.addNodesHandler();
+                    this.userActionController.treeController.emptySelectedNodes();
                 }
             });
 
@@ -139,9 +138,17 @@ module GTE {
                 }
                 else if (this.previouslyHoveredSprite instanceof ISetView) {
                     let nodes = (<ISetView>this.previouslyHoveredSprite).nodes;
-                    nodes.forEach(n => {
-                        this.userActionController.deleteNodeHandler(n);
-                    });
+                    if(nodes[0].node.children.length>1) {
+                        let nodesToDelete = [];
+                        nodes.forEach(n => {
+                            nodesToDelete.push(this.userActionController.treeController.treeView.findNodeView(n.node.children[n.node.children.length - 1]));
+
+                        });
+                        // Same hack as above
+                        this.userActionController.treeController.selectedNodes = nodesToDelete.slice(0);
+                        this.userActionController.deleteNodeHandler();
+                        this.userActionController.treeController.emptySelectedNodes();
+                    }
                 }
             });
 
@@ -298,6 +305,9 @@ module GTE {
                 // this.userActionController.deselectNodesHandler();
                 this.buttonsGroup.x = (<ISetView>hoveredSprite).label.x;
                 this.buttonsGroup.y = (<ISetView>hoveredSprite).label.y;
+                if((<ISetView>hoveredSprite).nodes[0].node.children.length<=1){
+                    this.minusButton.setInactive();
+                }
                 this.linkButton.setInactive();
                 this.chancePlayerButton.setInactive();
             }

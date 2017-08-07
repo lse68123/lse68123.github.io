@@ -21,7 +21,9 @@ module GTE {
         private labelHorizontalOffset: number;
 
         constructor(game: Phaser.Game, node: Node, x?: number, y?: number) {
-            super(game, x, y, "");
+            super(game, x, y, game.cache.getBitmapData("node-circle"));
+            this.alpha = 0;
+            this.renderable =  false;
             this.isSelected = false;
             this.anchor.set(0.5, 0.5);
             this.scale.set(OVERLAY_SCALE, OVERLAY_SCALE);
@@ -94,16 +96,18 @@ module GTE {
             this.ownerLabel.fontSize = this.circle.width * LABEL_SIZE;
             this.ownerLabel.fill = this.tint;
             this.ownerLabel.anchor.set(0.5, 0.5);
-
             this.ownerLabel.inputEnabled = true;
+            // this.ownerLabel.fontWeight = 100;
             this.ownerLabel.events.onInputDown.dispatch(this);
 
             this.payoffsLabel = this.game.add.text(this.x, this.y + this.width, "", null);
-            this.payoffsLabel.fontSize = this.circle.width * LABEL_SIZE;
+            this.payoffsLabel.position = this.position;
+            this.payoffsLabel.fontSize = this.circle.width * PAYOFF_SIZE;
             this.payoffsLabel.anchor.set(0.5, 0);
+            this.payoffsLabel.fontWeight = 100;
             this.payoffsLabel.inputEnabled = true;
-            this.payoffsLabel.lineSpacing = -15;
-            this.payoffsLabel.align = "center";
+            this.payoffsLabel.lineSpacing = -10;
+            this.payoffsLabel.align = "right";
             this.payoffsLabel.events.onInputDown.dispatch(this, "payoff");
 
         }
@@ -114,7 +118,7 @@ module GTE {
             // this.updateLabelPosition();
         }
 
-        updateLabelPosition() {
+        private updateLabelPosition() {
             if (this.node.parent && this.node.parent.children.indexOf(this.node) < this.node.parent.children.length / 2) {
                 this.labelHorizontalOffset = -1;
             }
@@ -123,8 +127,6 @@ module GTE {
             }
             this.ownerLabel.position.set(this.x + this.labelHorizontalOffset * this.circle.width,
                 this.y - this.circle.width);
-
-            this.payoffsLabel.position.set(this.x, this.y);
         }
 
         /** A method which converts the node, depending on whether it is a chance, owned or default.*/
@@ -171,18 +173,24 @@ module GTE {
                 this.circle.alpha = 1;
                 this.previewSelected.alpha = 0;
             }
+            this.updateLabelPosition();
         }
 
         /** A method which sets the label text as the player label*/
         resetLabelText(zeroSumOn:boolean) {
-            if (this.node.player && this.node.type !== NodeType.CHANCE) {
+            if (this.node.player && !this.node.iSet) {
                 this.ownerLabel.alpha = 1;
                 this.ownerLabel.setText(this.node.player.getLabel(), true);
                 let colorRGB = Phaser.Color.getRGB(this.node.player.color);
                 this.ownerLabel.fill = Phaser.Color.RGBtoString(colorRGB.r, colorRGB.g, colorRGB.b);
+                this.ownerLabel.scale.set(1);
             }
             else {
                 this.ownerLabel.alpha = 0;
+            }
+
+            if(this.node.player && this.node.type === NodeType.CHANCE){
+                this.ownerLabel.scale.set(0.5);
             }
 
             if (this.node.children.length === 0) {
@@ -197,7 +205,6 @@ module GTE {
                     this.payoffsLabel.text += labelsArray[i] + "\n";
                     this.payoffsLabel.addColor(Phaser.Color.getWebRGB(PLAYER_COLORS[i]), (this.payoffsLabel.text.length - labelsArray[i].length - i - 1));
                 }
-
                 this.payoffsLabel.text = this.payoffsLabel.text.slice(0, -1);
                 this.payoffsLabel.alpha = 1;
             }

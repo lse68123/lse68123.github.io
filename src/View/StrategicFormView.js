@@ -15,13 +15,14 @@ var GTE;
             this.p1Moves = [];
             this.p2Moves = [];
             this.group.scale.set(0.3);
-            this.group.position.set(this.game.width * 0.8, this.game.height * 0.05);
+            this.group.position.set(this.game.width * 0.7, this.game.height * 0.1);
             var cellWidth = this.game.width * GTE.CELL_WIDTH;
             var cellStroke = cellWidth * GTE.CELL_STROKE_WIDTH;
             this.generateGrid(cellWidth, cellStroke);
             this.drawDiagonalLine(cellWidth, cellStroke);
             this.createPlayerTexts(cellWidth);
             this.createStrategiesTexts(cellWidth, cellStroke);
+            this.createControlSprites();
         }
         StrategicFormView.prototype.generateGrid = function (cellWidth, cellStroke) {
             for (var i = 0; i < this.rows.length; i++) {
@@ -55,6 +56,8 @@ var GTE;
                 text.anchor.set(1, 0.5);
                 text.fontSize = cellWidth * GTE.MOVES_TEXT_SIZE;
                 text.fill = Phaser.Color.getWebRGB(GTE.PLAYER_COLORS[0]);
+                text.fontStyle = "italic";
+                text.fontWeight = 200;
                 this.p1Moves.push(text);
             }
             for (var i = 0; i < this.cols.length; i++) {
@@ -62,6 +65,8 @@ var GTE;
                 text.anchor.set(0.5, 0.5);
                 text.fontSize = cellWidth * GTE.MOVES_TEXT_SIZE;
                 text.fill = Phaser.Color.getWebRGB(GTE.PLAYER_COLORS[1]);
+                text.fontStyle = "italic";
+                text.fontWeight = 200;
                 this.p2Moves.push(text);
             }
             var maxAngle = 0;
@@ -88,10 +93,51 @@ var GTE;
                 });
             }
         };
+        StrategicFormView.prototype.createControlSprites = function () {
+            var _this = this;
+            this.background = this.game.add.sprite(this.group.x, this.group.y, this.game.cache.getBitmapData("line"));
+            this.background.width = this.cols.length * this.cells[0].width * this.group.scale.x;
+            this.background.height = this.rows.length * this.cells[0].height * this.group.scale.x;
+            this.background.inputEnabled = true;
+            this.background.input.draggable = true;
+            this.background.events.onDragUpdate.add(function () {
+                _this.group.position = _this.background.position;
+            });
+            this.background.events.onInputOver.add(function () {
+                _this.game.canvas.style.cursor = "move";
+            });
+            this.background.events.onInputOut.add(function () {
+                _this.game.canvas.style.cursor = "default";
+            });
+            this.zoomInIcon = this.game.add.sprite((this.cols.length - 0.5) * this.cells[0].width * 0.5, (this.rows.length + 0.2) * this.cells[0].height, "zoomIn", null, this.group);
+            this.zoomInIcon.scale.set(0.15);
+            this.zoomInIcon.anchor.set(0.5, 0.5);
+            this.zoomInIcon.inputEnabled = true;
+            this.zoomInIcon.events.onInputDown.add(function () {
+                _this.group.scale.set(_this.group.scale.x * 1.25);
+                _this.background.width = _this.cols.length * _this.cells[0].width * _this.group.scale.x;
+                _this.background.height = _this.rows.length * _this.cells[0].height * _this.group.scale.x;
+            });
+            this.zoomOutIcon = this.game.add.sprite((this.cols.length + 0.5) * this.cells[0].width * 0.5, (this.rows.length + 0.2) * this.cells[0].height, "zoomOut", null, this.group);
+            this.zoomOutIcon.scale.set(0.15);
+            this.zoomOutIcon.anchor.set(0.5, 0.5);
+            this.zoomOutIcon.inputEnabled = true;
+            this.zoomOutIcon.events.onInputDown.add(function () {
+                _this.group.scale.set(_this.group.scale.x * 0.8);
+                _this.background.width = _this.cols.length * _this.cells[0].width * _this.group.scale.x;
+                _this.background.height = _this.rows.length * _this.cells[0].height * _this.group.scale.x;
+            });
+            this.closeIcon = this.game.add.sprite((this.cols.length) * this.cells[0].width, (this.rows.length + 0.2) * this.cells[0].height, "close", null, this.group);
+            this.closeIcon.scale.set(0.15);
+            this.closeIcon.anchor.set(1, 0.5);
+            this.closeIcon.inputEnabled = true;
+            this.game.world.bringToTop(this.group);
+        };
         StrategicFormView.prototype.destroy = function () {
             this.rows = null;
             this.cols = null;
             this.group.destroy(true, false);
+            this.background.destroy();
             this.p1Moves = null;
             this.p2Moves = null;
         };

@@ -1,6 +1,7 @@
 ///<reference path="Tree.ts"/>
 ///<reference path="Node.ts"/>
 ///<reference path="Move.ts"/>
+///<reference path="../Utils/Constants.ts"/>
 module GTE {
     /**The class which will calculate the strategic form from the given tree */
     export class StrategicForm {
@@ -139,6 +140,7 @@ module GTE {
         }
 
         // A helper method for the recursion
+        // noinspection JSMethodCanBeStatic
         private findFirstNonNullIndex(strategy, index) {
             for (let i = index - 1; i >= 0; i--) {
                 if (strategy[i]) {
@@ -177,6 +179,9 @@ module GTE {
         checkStrategicFormPossible() {
             if (this.tree.players.length !== 3) {
                 throw new Error(STRATEGIC_PLAYERS_ERROR_TEXT);
+            }
+            if(!this.tree.checkAllNodesLabeled()){
+                throw new Error(STRATEGIC_NOT_LABELED_ERROR_TEXT);
             }
             this.tree.perfectRecallCheck();
         }

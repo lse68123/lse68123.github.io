@@ -13,7 +13,7 @@ module GTE {
         moves: Array<Move>;
         iSets: Array<ISet>;
         players: Array<Player>;
-        private dfsNodes:Array<Node>;
+        private dfsNodes: Array<Node>;
         private labelSetter: LabelSetter;
 
         constructor() {
@@ -64,6 +64,7 @@ module GTE {
         addISet(player: Player, nodes?: Array<Node>) {
             let iSet = new ISet(player, nodes);
             this.iSets.push(iSet);
+            return iSet;
         }
 
         /** Removes an iSet from the list of isets*/
@@ -95,12 +96,16 @@ module GTE {
                 }
                 this.nodes.splice(this.nodes.indexOf(node), 1);
 
-                if (node.parent && node.parent.iSet) {
-                    if (node.parent.iSet.nodes.length <= 2) {
-                        this.iSets.splice(this.iSets.indexOf(node.iSet), 1);
-                    }
-                    node.parent.iSet.removeNode(node.parent);
-                }
+                // if (node.parent && node.parent.iSet) {
+                //     if (node.parent.iSet.nodes.length <= 2) {
+                //         this.iSets.splice(this.iSets.indexOf(node.parent.iSet), 1);
+                //         node.parent.iSet.destroy();
+                //     }
+                //     else {
+                //         node.parent.iSet.removeNode(node.parent);
+                //     }
+                //
+                // }
                 node.destroy();
             }
         }
@@ -118,17 +123,27 @@ module GTE {
             this.moves.push(child.parentMove);
         }
 
+        getMaxDepth() {
+            let maxDepth = 0;
+            this.nodes.forEach(n => {
+                if (n.depth > maxDepth) {
+                    maxDepth = n.depth;
+                }
+            });
+            return maxDepth;
+        }
+
         /**Depth first search on the nodes of the tree*/
-        DFSOnTree(){
+        DFSOnTree() {
             this.dfsNodes = [];
             this.DFSRecursion(this.root);
             return this.dfsNodes;
         }
 
-        private DFSRecursion(node:Node){
+        private DFSRecursion(node: Node) {
             this.dfsNodes.push(node);
-            node.children.forEach(n=>{
-               this.DFSRecursion(n);
+            node.children.forEach(n => {
+                this.DFSRecursion(n);
             });
         }
 
@@ -152,8 +167,8 @@ module GTE {
         getLeaves() {
             let leaves = [];
             this.DFSOnTree();
-            this.dfsNodes.forEach(n=>{
-                if(n.children.length===0){
+            this.dfsNodes.forEach(n => {
+                if (n.children.length === 0) {
                     leaves.push(n);
                 }
             });
@@ -183,6 +198,17 @@ module GTE {
             }
         }
 
+        cleanISets() {
+            for (let i = 0; i < this.iSets.length; i++) {
+                if (this.iSets[i].nodes.length<=1 || !this.checkNumberOfChildren(this.iSets[i].nodes)) {
+                    this.removeISet(this.iSets[i]);
+                    i--;
+                }
+
+            }
+        }
+
+
         /**A method for checking whether the game has perfect recall.*/
         perfectRecallCheck() {
             for (let i = 0; i < this.iSets.length; i++) {
@@ -193,18 +219,18 @@ module GTE {
                     let currentMove = n.parentMove;
                     while (current) {
                         if (current.player === n.player) {
-                            iSetReachability.push({node:current,move:currentMove});
+                            iSetReachability.push({node: current, move: currentMove});
                         }
                         currentMove = current.parentMove;
-                        current=current.parent;
+                        current = current.parent;
                     }
                 });
                 console.log(iSetReachability);
                 for (let j = 0; j < iSetReachability.length; j++) {
                     let pair1 = iSetReachability[j];
-                    for (let k = j+1; k < iSetReachability.length; k++) {
+                    for (let k = j + 1; k < iSetReachability.length; k++) {
                         let pair2 = iSetReachability[k];
-                        if(pair1.node === pair2.node && pair1.move !== pair2.move){
+                        if (pair1.node === pair2.node && pair1.move !== pair2.move) {
                             throw new Error(IMPERFECT_RECALL_ERROR_TEXT);
                         }
                     }
@@ -229,6 +255,7 @@ module GTE {
             this.labelSetter.calculateLabels(this.BFSOnTree(), this.players);
             this.resetChanceProbabilities();
         }
+
 
         private resetChanceProbabilities() {
             // Find all chance moves
@@ -276,7 +303,8 @@ module GTE {
         }
 
         /**Checks if all nodes have the required number of children*/
-        private checkNumberOfChildren(nodes: Array<Node>): boolean {
+
+        private checkNumberOfChildren(nodes: Array < Node >): boolean {
             if (nodes[nodes.length - 1].children.length === 0) {
                 return false;
             }
@@ -289,7 +317,8 @@ module GTE {
         }
 
         /**Checks if selected nodes have the same player assigned*/
-        private checkIfNodesHaveTheSamePlayer(nodes: Array<Node>): boolean {
+
+        private checkIfNodesHaveTheSamePlayer(nodes: Array < Node >): boolean {
             let players = [];
             for (let i = 0; i < nodes.length; i++) {
                 let node = nodes[i];
@@ -301,7 +330,8 @@ module GTE {
         }
 
         /**Checks whether any 2 nodes of an array share a path to the root.*/
-        private checkIfNodesSharePathToRoot(nodes: Array<Node>): boolean {
+
+        private checkIfNodesSharePathToRoot(nodes: Array < Node >): boolean {
             for (let i = 0; i < nodes.length; i++) {
                 let n1 = nodes[i];
                 let path1 = n1.getPathToRoot();
@@ -317,9 +347,10 @@ module GTE {
         }
 
         /** A method which sets the probabilities of a chance node, once a new probability is set externally*/
+
         private chanceNodesSetProbabilities(move: Move, text: string) {
             let newProb = parseFloat(text);
-            if (newProb>=0 && newProb <= 1) {
+            if (newProb >= 0 && newProb <= 1) {
                 move.probability = newProb;
                 let probabilities = [];
                 let currentIndex = -1;

@@ -4,24 +4,13 @@ var GTE;
 (function (GTE) {
     var LabelInput = (function () {
         function LabelInput(game) {
-            var _this = this;
             this.game = game;
-            this.appendElements();
             this.shouldRecalculateOrder = true;
             this.active = false;
-            setTimeout(function () {
-                _this.labelOverlay = $('#label-overlay');
-                _this.inputField = $("#input-label");
-                _this.inputHandler();
-            }, 500);
+            this.labelOverlay = $('#label-overlay');
+            this.inputField = $("#input-label");
+            this.inputHandler();
         }
-        LabelInput.prototype.appendElements = function () {
-            $.get("src/Menus/LabelInput/label-input.html", function (data) {
-                $('body').append(data);
-            });
-            var css = "<link rel=\"stylesheet\" href=\"src/Menus/LabelInput/label-input.css\" type=\"text/css\"/>";
-            $('head').append(css);
-        };
         LabelInput.prototype.show = function (label, sprite) {
             var _this = this;
             this.currentlySelected = sprite;
@@ -44,7 +33,7 @@ var GTE;
             }, 100);
             this.active = true;
         };
-        LabelInput.prototype.hideLabel = function () {
+        LabelInput.prototype.hide = function () {
             if (this.labelOverlay.hasClass("show-overlay")) {
                 this.labelOverlay.removeClass("show-overlay");
             }
@@ -57,7 +46,7 @@ var GTE;
         LabelInput.prototype.inputHandler = function () {
             var _this = this;
             this.labelOverlay.on("click", function () {
-                _this.hideLabel();
+                _this.hide();
             });
         };
         return LabelInput;

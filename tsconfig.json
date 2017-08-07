@@ -2,8 +2,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es5",
-    "sourceMap": true,
-    "outFile":"build/app.js"
+    "sourceMap": true
+//    "outFile":"build/app.js"
   },
   "exclude": [
     "lib/*"

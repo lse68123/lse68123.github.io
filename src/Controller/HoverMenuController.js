@@ -14,7 +14,6 @@ var GTE;
             this.buttonsGroup.name = "hoverMenu";
             this.createButtonSprites();
             this.setButtonFunctionality();
-            console.log(this.plusButton.width);
             this.buttonWidth = this.plusButton.width;
             var nodeWidth = this.userActionController.treeController.treeView.nodes[0].width;
             this.repositionButtonSprites(nodeWidth);
@@ -83,10 +82,10 @@ var GTE;
                     _this.userActionController.addNodesHandler(_this.previouslyHoveredSprite);
                 }
                 else if (_this.previouslyHoveredSprite instanceof GTE.ISetView) {
-                    var nodes = _this.previouslyHoveredSprite.nodes;
-                    nodes.forEach(function (n) {
-                        _this.userActionController.addNodesHandler(n);
-                    });
+                    //A hack in order not to break the information set.
+                    _this.userActionController.treeController.selectedNodes = _this.previouslyHoveredSprite.nodes.slice(0);
+                    _this.userActionController.addNodesHandler();
+                    _this.userActionController.treeController.emptySelectedNodes();
                 }
             });
             // Remove node button functionality
@@ -99,9 +98,16 @@ var GTE;
                 }
                 else if (_this.previouslyHoveredSprite instanceof GTE.ISetView) {
                     var nodes = _this.previouslyHoveredSprite.nodes;
-                    nodes.forEach(function (n) {
-                        _this.userActionController.deleteNodeHandler(n);
-                    });
+                    if (nodes[0].node.children.length > 1) {
+                        var nodesToDelete_1 = [];
+                        nodes.forEach(function (n) {
+                            nodesToDelete_1.push(_this.userActionController.treeController.treeView.findNodeView(n.node.children[n.node.children.length - 1]));
+                        });
+                        // Same hack as above
+                        _this.userActionController.treeController.selectedNodes = nodesToDelete_1.slice(0);
+                        _this.userActionController.deleteNodeHandler();
+                        _this.userActionController.treeController.emptySelectedNodes();
+                    }
                 }
             });
             // Players button functionality
@@ -245,6 +251,9 @@ var GTE;
                 // this.userActionController.deselectNodesHandler();
                 this.buttonsGroup.x = hoveredSprite.label.x;
                 this.buttonsGroup.y = hoveredSprite.label.y;
+                if (hoveredSprite.nodes[0].node.children.length <= 1) {
+                    this.minusButton.setInactive();
+                }
                 this.linkButton.setInactive();
                 this.chancePlayerButton.setInactive();
             }

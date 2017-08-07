@@ -24,37 +24,47 @@ module GTE {
         zeroSumButton: JQuery;
         fractionDecimalButton: JQuery;
 
+        strategicFormButton: JQuery;
+        infoButton: JQuery;
+        infoContainer: JQuery;
+        closeInfoButton: JQuery;
+        overlay: JQuery;
+        settingsButton: JQuery;
+        settingsWindow: JQuery;
+        rangeTree: JQuery;
+        rangeLevel: JQuery;
+
+        inputTree: JQuery;
+        inputLevel: JQuery;
 
         constructor(userActionController: UserActionController) {
             this.userActionController = userActionController;
             this.treeParser = new TreeParser();
-            this.appendElements();
-            setTimeout(() => {
-                this.newButton = $("#new-wrapper");
-                this.saveButton = $("#save-wrapper");
-                this.loadButton = $("#load-wrapper");
-                this.inputLoad = $("#input-load");
-                this.saveImageButton = $("#save-image-wrapper");
-                this.playerNumber = $("#player-number");
-                this.playerMinusButton = $("#minusP-wrapper");
-                this.playerPlusButton = $("#plusP-wrapper");
-                this.undoButton = $("#undo-wrapper");
-                this.redoButton = $("#redo-wrapper");
-                this.randomPayoffsButton = $("#random-payoffs-wrapper");
-                this.zeroSumButton = $("#zero-sum-wrapper");
-                this.fractionDecimalButton = $("#fraction-decimal-wrapper");
-                this.attachEvents();
-            }, 300);
-
-        }
-
-        appendElements() {
-            $.get("src/Menus/TopMenu/top-menu.html", function (data) {
-                $('body').append(data);
-            });
-
-            let css = `<link rel="stylesheet" href="src/Menus/TopMenu/top-menu.css" type="text/css"/>`;
-            $('head').append(css);
+            this.newButton = $("#new-wrapper");
+            this.saveButton = $("#save-wrapper");
+            this.loadButton = $("#load-wrapper");
+            this.inputLoad = $("#input-load");
+            this.saveImageButton = $("#save-image-wrapper");
+            this.playerNumber = $("#player-number");
+            this.playerMinusButton = $("#minusP-wrapper");
+            this.playerPlusButton = $("#plusP-wrapper");
+            this.undoButton = $("#undo-wrapper");
+            this.redoButton = $("#redo-wrapper");
+            this.randomPayoffsButton = $("#random-payoffs-wrapper");
+            this.zeroSumButton = $("#zero-sum-wrapper");
+            this.fractionDecimalButton = $("#fraction-decimal-wrapper");
+            this.strategicFormButton = $("#strat-form-button");
+            this.infoButton = $("#info-button-wrapper");
+            this.infoContainer = $(".info-main-container");
+            this.closeInfoButton = $(".close-info-img");
+            this.overlay = $("#label-overlay");
+            this.settingsButton = $("#settings-button-wrapper");
+            this.settingsWindow = $(".settings-menu-container");
+            this.rangeTree = $('.input-range-tree');
+            this.inputTree = $('.input-field-tree');
+            this.rangeLevel = $('.input-range-level');
+            this.inputLevel = $('.input-field-level');
+            this.attachEvents();
         }
 
         attachEvents() {
@@ -117,7 +127,6 @@ module GTE {
             });
             this.zeroSumButton.on("click", () => {
                 let src = this.zeroSumButton.find("img").attr("src");
-                console.log(src);
                 if (src === "src/Assets/Images/TopMenu/zeroSum.png") {
                     this.zeroSumButton.find("img").attr("src", "src/Assets/Images/TopMenu/nonZeroSum.png")
                 }
@@ -129,7 +138,6 @@ module GTE {
 
             this.fractionDecimalButton.on("click", () => {
                 let src = this.fractionDecimalButton.find("img").attr("src");
-                console.log(src);
                 if (src === "src/Assets/Images/TopMenu/fraction.png") {
                     this.fractionDecimalButton.find("img").attr("src", "src/Assets/Images/TopMenu/decimal.png")
                 }
@@ -137,6 +145,72 @@ module GTE {
                     this.fractionDecimalButton.find("img").attr("src", "src/Assets/Images/TopMenu/fraction.png")
                 }
                 this.userActionController.toggleFractionDecimal();
+            });
+
+            this.strategicFormButton.on("click", () => {
+                this.userActionController.createStrategicForm();
+            });
+
+            this.infoButton.on("click", () => {
+                this.infoContainer.addClass("show-container");
+                this.overlay.addClass("show-overlay");
+
+            });
+
+            this.closeInfoButton.on("click", () => {
+                this.infoContainer.removeClass("show-container");
+                this.overlay.removeClass("show-overlay");
+            });
+
+            this.overlay.on("click", () => {
+                this.closeInfoButton.click();
+            });
+
+            this.settingsButton.on("click", () => {
+                if (this.settingsWindow.hasClass("slide-in")) {
+                    this.settingsWindow.removeClass("slide-in");
+                }
+                else {
+                    this.settingsWindow.addClass("slide-in");
+                }
+            });
+
+            this.inputTree.val(this.rangeTree.attr("value"));
+            this.inputLevel.val(this.rangeLevel.attr("value"));
+
+            this.rangeTree.on('input', () => {
+                this.inputTree.val(this.rangeTree.val());
+                let scale = parseInt(this.inputTree.val()) / 50;
+                if (scale && scale >= 0 && scale <= 2) {
+                    this.userActionController.treeController.treeViewProperties.treeWidth = scale * this.userActionController.game.width * INITIAL_TREE_WIDTH;
+                }
+                this.userActionController.treeController.treeView.drawTree();
+
+            });
+            this.rangeLevel.on('input', () => {
+                this.inputLevel.val(this.rangeLevel.val());
+                let scale = parseInt(this.inputLevel.val()) / 50;
+                if (scale && scale >= 0 && scale <= 2) {
+                    this.userActionController.treeController.treeViewProperties.levelHeight = scale * this.userActionController.game.height * INITIAL_TREE_HEIGHT;
+                }
+                this.userActionController.treeController.treeView.drawTree();
+            });
+
+            this.inputTree.on('input', () => {
+                this.rangeTree.val(this.inputTree.val());
+                let scale = parseInt(this.inputTree.val()) / 50;
+                if (scale && scale >= 0 && scale <= 2) {
+                    this.userActionController.treeController.treeViewProperties.treeWidth = scale * this.userActionController.game.width * INITIAL_TREE_WIDTH;
+                }
+                this.userActionController.treeController.treeView.drawTree();
+            });
+            this.inputLevel.on('input', () => {
+                this.rangeLevel.val(this.inputLevel.val());
+                let scale = parseInt(this.inputLevel.val()) / 50;
+                if (scale && scale >= 0 && scale <= 2) {
+                    this.userActionController.treeController.treeViewProperties.levelHeight = scale * this.userActionController.game.height * INITIAL_TREE_HEIGHT;
+                }
+                this.userActionController.treeController.treeView.drawTree();
             });
 
         }

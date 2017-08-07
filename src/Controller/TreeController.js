@@ -33,10 +33,10 @@ var GTE;
             this.tree.addNode();
             this.tree.addChildToNode(this.tree.nodes[0]);
             this.tree.addChildToNode(this.tree.nodes[0]);
-            this.tree.addPlayer(new GTE.Player(0, "0", 0x000000));
+            this.tree.addPlayer(new GTE.Player(0, "chance", 0x000000));
             this.tree.addPlayer(new GTE.Player(1, "1", GTE.PLAYER_COLORS[0]));
             this.tree.addPlayer(new GTE.Player(2, "2", GTE.PLAYER_COLORS[1]));
-            this.treeViewProperties = new GTE.TreeViewProperties(220, 1000);
+            this.treeViewProperties = new GTE.TreeViewProperties(this.game.height * GTE.INITIAL_TREE_HEIGHT, this.game.width * GTE.INITIAL_TREE_WIDTH);
             this.treeView = new GTE.TreeView(this.game, this.tree, this.treeViewProperties);
             this.treeView.nodes[0].ownerLabel.text = "A";
             this.treeView.nodes[1].ownerLabel.text = "B";
@@ -46,7 +46,7 @@ var GTE;
          * It handles the selection of nodes, while holding the mouse button*/
         TreeController.prototype.update = function () {
             var _this = this;
-            if (this.game.input.activePointer.isDown) {
+            if (this.game.input.activePointer.isDown && this.selectionRectangle.active) {
                 this.treeView.nodes.forEach(function (n) {
                     if (_this.selectionRectangle.overlap(n) && _this.selectedNodes.indexOf(n) === -1) {
                         // n.setColor(NODE_SELECTED_COLOR);
@@ -269,7 +269,9 @@ var GTE;
                     player = n.node.player;
                 }
             });
-            this.tree.addISet(player, iSetNodes);
+            var iSet = this.tree.addISet(player, iSetNodes);
+            var iSetV = this.treeView.addISetView(iSet);
+            this.attachHandlersToISet(iSetV);
             this.resetTree();
         };
         /**A method for deleting an iSet*/
@@ -338,12 +340,8 @@ var GTE;
         };
         /**A method for resetting the tree after each action on the tree*/
         TreeController.prototype.resetTree = function () {
-            var _this = this;
             if (this.tree.nodes.length > 1) {
                 this.treeView.drawTree();
-                this.treeView.iSets.forEach(function (iSetV) {
-                    _this.attachHandlersToISet(iSetV);
-                });
             }
         };
         /**Get all children of a given node*/

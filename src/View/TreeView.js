@@ -6,6 +6,7 @@
 ///<reference path="../Model/Node.ts"/>
 ///<reference path="ISetView.ts"/>
 ///<reference path="../Utils/TreeTweenManager.ts"/>
+///<reference path="../Model/ISet.ts"/>
 var GTE;
 (function (GTE) {
     /** A class for the graphical representation of the tree. The main algorithm for drawing and repositioning
@@ -13,7 +14,7 @@ var GTE;
     var TreeView = (function () {
         function TreeView(game, tree, properties) {
             this.game = game;
-            this.treeTweenManager = new GTE.TreeTweenManager(this.game);
+            this.treeTweenManager = new GTE.TreeTweenManager(this.game, properties);
             this.tree = tree;
             this.properties = properties;
             this.nodes = [];
@@ -32,27 +33,34 @@ var GTE;
                     _this.moves.push(new GTE.MoveView(_this.game, parent_1, nodeView));
                 }
             });
+            this.tree.iSets.forEach(function (iSet) {
+                _this.addISetView(iSet);
+            });
             this.drawTree();
             // NOTE: Moves positions are only updated on initial drawing
             this.moves.forEach(function (m) {
                 m.updateMovePosition();
-                m.updateLabel(_this.properties.fractionOn);
+                m.updateLabel(_this.properties.fractionOn, _this.properties.levelHeight);
             });
         };
         /**This method draws the tree by recursively calling the drawNode method*/
         TreeView.prototype.drawTree = function () {
+            var maxDepth = this.tree.getMaxDepth();
+            if (maxDepth * this.properties.levelHeight > this.game.height * 0.75) {
+                this.properties.levelHeight *= 0.8;
+            }
             this.treeTweenManager.oldCoordinates = this.getOldCoordinates();
-            this.setYCoordinates(this.tree.root);
+            this.setYCoordinates();
             this.updateLeavesPositions();
-            this.centerParents(this.tree.root);
+            this.centerParents();
             this.centerGroupOnScreen();
             this.drawISets();
             this.drawLabels();
-            this.treeTweenManager.startTweens(this.nodes, this.moves, this.iSets);
+            this.treeTweenManager.startTweens(this.nodes, this.moves, this.iSets, this.properties.fractionOn);
             // NOTE: All other moves will be updated from the tween manager.
             if (this.moves.length > 0) {
                 this.moves[this.moves.length - 1].updateMovePosition();
-                this.moves[this.moves.length - 1].updateLabel(this.properties.fractionOn);
+                this.moves[this.moves.length - 1].updateLabel(this.properties.fractionOn, this.properties.levelHeight);
             }
         };
         TreeView.prototype.getOldCoordinates = function () {
@@ -63,57 +71,36 @@ var GTE;
             return oldCoordinates;
         };
         /**Sets the Y-coordinates for the tree nodes*/
-        TreeView.prototype.setYCoordinates = function (node) {
+        TreeView.prototype.setYCoordinates = function () {
             var _this = this;
-            node.children.forEach(function (n) { return _this.setYCoordinates(n); });
-            var nodeView = this.findNodeView(node);
-            nodeView.y = nodeView.level * this.properties.levelHeight;
+            this.nodes.forEach(function (nodeView) {
+                nodeView.y = nodeView.level * _this.properties.levelHeight;
+            });
         };
         /**Update the leaves' x coordinate first*/
         TreeView.prototype.updateLeavesPositions = function () {
             var leaves = this.tree.getLeaves();
-            var widthPerNode = this.game.width * 0.7 / leaves.length;
-            var offset = (this.game.width - widthPerNode * leaves.length) / 2;
+            var widthPerNode = this.properties.treeWidth / leaves.length;
             for (var i = 0; i < leaves.length; i++) {
                 var nodeView = this.findNodeView(leaves[i]);
-                nodeView.x = (widthPerNode * i) + (widthPerNode / 2) - nodeView.width / 2 + offset;
+                nodeView.x = (widthPerNode * i);
             }
         };
         /**Update the parents' x coordinate*/
-        TreeView.prototype.centerParents = function (node) {
+        TreeView.prototype.centerParents = function () {
             var _this = this;
-            if (node.children.length !== 0) {
-                node.children.forEach(function (n) { return _this.centerParents(n); });
-                // let depthDifferenceToLeft = node.children[0].depth - node.depth;
-                var depthDifferenceToLeft = this.findNodeView(node.children[0]).level - this.findNodeView(node).level;
-                // let depthDifferenceToRight = node.children[node.children.length - 1].depth - node.depth;
-                var depthDifferenceToRight = this.findNodeView(node.children[node.children.length - 1]).level - this.findNodeView(node).level;
-                var total = depthDifferenceToLeft + depthDifferenceToRight;
-                var leftChildNodeView = this.findNodeView(node.children[0]);
-                var rightChildNodeView = this.findNodeView(node.children[node.children.length - 1]);
-                var horizontalDistanceToLeft = depthDifferenceToLeft * (rightChildNodeView.x - leftChildNodeView.x) / total;
-                var currentNodeView = this.findNodeView(node);
-                currentNodeView.x = leftChildNodeView.x + horizontalDistanceToLeft;
-            }
+            this.tree.BFSOnTree().reverse().forEach(function (node) {
+                if (node.children.length !== 0) {
+                    var currentNodeView = _this.findNodeView(node);
+                    var leftChildNodeView = _this.findNodeView(node.children[0]);
+                    var rightChildNodeView = _this.findNodeView(node.children[node.children.length - 1]);
+                    currentNodeView.x = (leftChildNodeView.x + rightChildNodeView.x) / 2;
+                }
+            });
         };
         TreeView.prototype.drawISets = function () {
-            var _this = this;
-            for (var i = 0; i < this.iSets.length; i++) {
-                // this.iSets[i].destroy();
-                this.removeISetView(this.iSets[i]);
-                i--;
-            }
-            this.tree.iSets.forEach(function (iSet) {
-                var iSetNodes = [];
-                var maxDepth = 0;
-                iSet.nodes.forEach(function (node) {
-                    if (node.depth > maxDepth) {
-                        maxDepth = node.depth;
-                    }
-                    iSetNodes.push(_this.findNodeView(node));
-                });
-                _this.iSets.push(new GTE.ISetView(_this.game, iSet, iSetNodes));
-                //DFS branch children and increase by maxDepth - parentDepth
+            this.iSets.forEach(function (is) {
+                is.resetISet();
             });
         };
         /** Adds a child to a specified node*/
@@ -163,6 +150,17 @@ var GTE;
                 nodeV.destroy();
             }
         };
+        /**A method for adding an iSetView*/
+        TreeView.prototype.addISetView = function (iSet) {
+            var _this = this;
+            var nodes = [];
+            iSet.nodes.forEach(function (n) {
+                nodes.push(_this.findNodeView(n));
+            });
+            var iSetV = new GTE.ISetView(this.game, iSet, nodes);
+            this.iSets.push(iSetV);
+            return iSetV;
+        };
         /**A helper method for finding the iSetView, given iSet*/
         TreeView.prototype.findISetView = function (iSet) {
             for (var i = 0; i < this.iSets.length; i++) {
@@ -176,7 +174,22 @@ var GTE;
         TreeView.prototype.removeISetView = function (iSetView) {
             if (this.iSets.indexOf(iSetView) !== -1) {
                 this.iSets.splice(this.iSets.indexOf(iSetView), 1);
+                iSetView.nodes.forEach(function (n) {
+                    if (n.node && n.node.player) {
+                        n.ownerLabel.alpha = 1;
+                    }
+                });
                 iSetView.destroy();
+            }
+        };
+        /**A method which removes broken iSets*/
+        TreeView.prototype.cleanISets = function () {
+            for (var i = 0; i < this.iSets.length; i++) {
+                var iSetV = this.iSets[i];
+                if (!iSetV.iSet || !iSetV.iSet.nodes) {
+                    this.removeISetView(iSetV);
+                    i--;
+                }
             }
         };
         /** A method which decides whether to show the labels or not*/
@@ -186,7 +199,7 @@ var GTE;
                 this.tree.resetLabels();
                 this.moves.forEach(function (m) {
                     m.label.alpha = 1;
-                    m.updateLabel(_this.properties.fractionOn);
+                    m.updateLabel(_this.properties.fractionOn, _this.properties.levelHeight);
                 });
                 this.nodes.forEach(function (n) {
                     if (n.node.children.length === 0) {
@@ -233,10 +246,6 @@ var GTE;
             });
             var width = right - left;
             var height = bottom - top;
-            if (height > this.game.height * 0.9) {
-                this.properties.levelHeight = this.properties.levelHeight * 0.8;
-                this.drawTree();
-            }
             var treeCenterX = left + width / 2;
             var treeCenterY = top + height / 2;
             var offsetX = (this.game.width / 2 - treeCenterX);

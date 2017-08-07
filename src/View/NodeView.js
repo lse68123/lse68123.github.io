@@ -18,7 +18,9 @@ var GTE;
     var NodeView = (function (_super) {
         __extends(NodeView, _super);
         function NodeView(game, node, x, y) {
-            var _this = _super.call(this, game, x, y, "") || this;
+            var _this = _super.call(this, game, x, y, game.cache.getBitmapData("node-circle")) || this;
+            _this.alpha = 0;
+            _this.renderable = false;
             _this.isSelected = false;
             _this.anchor.set(0.5, 0.5);
             _this.scale.set(GTE.OVERLAY_SCALE, GTE.OVERLAY_SCALE);
@@ -83,13 +85,16 @@ var GTE;
             this.ownerLabel.fill = this.tint;
             this.ownerLabel.anchor.set(0.5, 0.5);
             this.ownerLabel.inputEnabled = true;
+            // this.ownerLabel.fontWeight = 100;
             this.ownerLabel.events.onInputDown.dispatch(this);
             this.payoffsLabel = this.game.add.text(this.x, this.y + this.width, "", null);
-            this.payoffsLabel.fontSize = this.circle.width * GTE.LABEL_SIZE;
+            this.payoffsLabel.position = this.position;
+            this.payoffsLabel.fontSize = this.circle.width * GTE.PAYOFF_SIZE;
             this.payoffsLabel.anchor.set(0.5, 0);
+            this.payoffsLabel.fontWeight = 100;
             this.payoffsLabel.inputEnabled = true;
-            this.payoffsLabel.lineSpacing = -15;
-            this.payoffsLabel.align = "center";
+            this.payoffsLabel.lineSpacing = -10;
+            this.payoffsLabel.align = "right";
             this.payoffsLabel.events.onInputDown.dispatch(this, "payoff");
         };
         /** A method which sets the position of the node to a specific x and y coordinate*/
@@ -105,7 +110,6 @@ var GTE;
                 this.labelHorizontalOffset = 1;
             }
             this.ownerLabel.position.set(this.x + this.labelHorizontalOffset * this.circle.width, this.y - this.circle.width);
-            this.payoffsLabel.position.set(this.x, this.y);
         };
         /** A method which converts the node, depending on whether it is a chance, owned or default.*/
         NodeView.prototype.resetNodeDrawing = function () {
@@ -146,17 +150,22 @@ var GTE;
                 this.circle.alpha = 1;
                 this.previewSelected.alpha = 0;
             }
+            this.updateLabelPosition();
         };
         /** A method which sets the label text as the player label*/
         NodeView.prototype.resetLabelText = function (zeroSumOn) {
-            if (this.node.player && this.node.type !== GTE.NodeType.CHANCE) {
+            if (this.node.player && !this.node.iSet) {
                 this.ownerLabel.alpha = 1;
                 this.ownerLabel.setText(this.node.player.getLabel(), true);
                 var colorRGB = Phaser.Color.getRGB(this.node.player.color);
                 this.ownerLabel.fill = Phaser.Color.RGBtoString(colorRGB.r, colorRGB.g, colorRGB.b);
+                this.ownerLabel.scale.set(1);
             }
             else {
                 this.ownerLabel.alpha = 0;
+            }
+            if (this.node.player && this.node.type === GTE.NodeType.CHANCE) {
+                this.ownerLabel.scale.set(0.5);
             }
             if (this.node.children.length === 0) {
                 if (zeroSumOn) {

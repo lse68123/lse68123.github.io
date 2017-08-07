@@ -46,8 +46,8 @@ var GTE;
         };
         /**Resets the current Tree*/
         UserActionController.prototype.createNewTree = function () {
-            this.treeController.deleteNodeHandler(this.treeController.tree.root);
-            this.treeController.addNodeHandler(this.treeController.treeView.nodes[0]);
+            this.deleteNodeHandler(this.treeController.treeView.nodes[0]);
+            this.addNodesHandler(this.treeController.treeView.nodes[0]);
         };
         /**Saves a tree to a txt file*/
         UserActionController.prototype.saveTreeToFile = function () {
@@ -69,7 +69,6 @@ var GTE;
         /**A method which loads the tree from a selected file*/
         UserActionController.prototype.loadTreeFromFile = function (text) {
             var _this = this;
-            console.log("handler");
             try {
                 this.treeController.deleteNodeHandler(this.treeController.tree.root);
                 this.treeController.treeView.nodes[0].destroy();
@@ -128,6 +127,8 @@ var GTE;
                     _this.treeController.addNodeHandler(n);
                 });
             }
+            this.treeController.tree.cleanISets();
+            this.treeController.treeView.cleanISets();
             this.undoRedoController.saveNewTree();
         };
         /** A method for deleting nodes (keyboard DELETE).*/
@@ -152,6 +153,8 @@ var GTE;
             deletedNodes.forEach(function (n) {
                 _this.treeController.selectedNodes.splice(_this.treeController.selectedNodes.indexOf(n), 1);
             });
+            this.treeController.tree.cleanISets();
+            this.treeController.treeView.cleanISets();
             this.undoRedoController.saveNewTree();
         };
         /**A method for assigning players to nodes (keyboard 1,2,3,4)*/
@@ -298,7 +301,7 @@ var GTE;
         };
         /**If the label input is active, go to the next label
          * If next is false, we go to the previous label*/
-        UserActionController.prototype.activateLabel = function (next) {
+        UserActionController.prototype.activateLabelField = function (next) {
             if (this.treeController.labelInput.active) {
                 if (this.treeController.labelInput.shouldRecalculateOrder) {
                     this.nodesBFSOrder = this.treeController.tree.BFSOnTree();
@@ -348,35 +351,37 @@ var GTE;
             if (this.treeController.labelInput.active) {
                 // If we are looking at moves
                 if (this.treeController.labelInput.currentlySelected instanceof GTE.MoveView) {
-                    this.treeController.tree.changeMoveLabel(this.treeController.labelInput.currentlySelected.move, this.treeController.labelInput.inputField.val());
+                    var moveV = this.treeController.labelInput.currentlySelected;
+                    this.treeController.tree.changeMoveLabel(moveV.move, this.treeController.labelInput.inputField.val());
                     this.treeController.treeView.moves.forEach(function (m) {
-                        m.updateLabel(_this.treeController.treeViewProperties.fractionOn);
+                        m.updateLabel(_this.treeController.treeViewProperties.fractionOn, _this.treeController.treeViewProperties.levelHeight);
                     });
-                    this.activateLabel(true);
                 }
                 else if (this.treeController.labelInput.currentlySelected instanceof GTE.NodeView) {
-                    if (this.treeController.labelInput.currentlySelected.ownerLabel.alpha === 1) {
-                        this.treeController.labelInput.currentlySelected.node.player.label = this.treeController.labelInput.inputField.val();
+                    var nodeV = this.treeController.labelInput.currentlySelected;
+                    if (nodeV.ownerLabel.alpha === 1) {
+                        nodeV.node.player.label = this.treeController.labelInput.inputField.val();
                         this.treeController.treeView.nodes.forEach(function (n) {
-                            n.resetLabelText(_this.treeController.treeViewProperties.zeroSumOn);
+                            if (n.node.player) {
+                                n.ownerLabel.setText(n.node.player.getLabel(), true);
+                            }
                         });
-                        this.activateLabel(true);
                     }
                     else {
-                        this.treeController.labelInput.currentlySelected.node.payoffs.loadFromString(this.treeController.labelInput.inputField.val());
+                        nodeV.node.payoffs.loadFromString(this.treeController.labelInput.inputField.val());
                         this.treeController.treeView.nodes.forEach(function (n) {
                             n.resetLabelText(_this.treeController.treeViewProperties.zeroSumOn);
                         });
-                        this.activateLabel(true);
                     }
                 }
+                this.activateLabelField(true);
                 this.undoRedoController.saveNewTree();
             }
         };
         /**Hides then input*/
         UserActionController.prototype.hideInputLabel = function () {
             if (this.treeController.labelInput.active) {
-                this.treeController.labelInput.hideLabel();
+                this.treeController.labelInput.hide();
             }
         };
         /**A helper method which calculates the next possible index of a labeled node*/
@@ -412,8 +417,21 @@ var GTE;
             }
             return current;
         };
-        //TEST METHOD!
+        /**Moves a node manually and does not move the children*/
+        UserActionController.prototype.moveNodeManually = function (directionX, directionY, distance) {
+            var _this = this;
+            this.treeController.selectedNodes.forEach(function (node) {
+                node.position.add(directionX * distance, directionY * distance);
+                node.resetNodeDrawing();
+            });
+            this.treeController.treeView.moves.forEach(function (m) {
+                m.updateMovePosition();
+                m.updateLabel(_this.treeController.treeViewProperties.fractionOn, _this.treeController.treeViewProperties.levelHeight);
+            });
+            this.treeController.treeView.drawISets();
+        };
         UserActionController.prototype.createStrategicForm = function () {
+            var _this = this;
             if (this.strategicForm) {
                 this.strategicForm.destroy();
             }
@@ -423,6 +441,18 @@ var GTE;
             try {
                 this.strategicForm = new GTE.StrategicForm(this.treeController.tree);
                 this.strategicFormView = new GTE.StrategicFormView(this.game, this.strategicForm);
+                this.strategicFormView.background.events.onDragStart.add(function () {
+                    _this.game.canvas.style.cursor = "move";
+                    _this.treeController.selectionRectangle.active = false;
+                });
+                this.strategicFormView.background.events.onDragStop.add(function () {
+                    _this.game.canvas.style.cursor = "move";
+                    _this.treeController.selectionRectangle.active = true;
+                });
+                this.strategicFormView.closeIcon.events.onInputDown.add(function () {
+                    _this.strategicForm.destroy();
+                    _this.strategicFormView.destroy();
+                });
             }
             catch (err) {
                 this.treeController.errorPopUp.show(err.message);

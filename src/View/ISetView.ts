@@ -4,33 +4,56 @@
 ///<reference path="../Utils/Constants.ts"/>
 module GTE {
     /**A class for drawing the iSet */
-    export class ISetView extends Phaser.Sprite{
+    export class ISetView extends Phaser.Sprite {
         game: Phaser.Game;
         bmd: Phaser.BitmapData;
         iSet: ISet;
-        label:Phaser.Text;
+        label: Phaser.Text;
         nodes: Array<NodeView>;
         lineWidth: number;
 
         constructor(game: Phaser.Game, iSet: ISet, nodes: Array<NodeView>) {
-            super(game,0,0,"");
+            super(game, 0, 0, "");
             this.game = game;
             this.iSet = iSet;
             this.nodes = nodes;
+
+            this.bmd = this.game.make.bitmapData(this.game.width, this.game.height);
             this.sortNodesLeftToRight();
-            this.createSimpleISet();
-            this.label = this.game.add.text(this.nodes[0].x,this.nodes[0].y, "",null);
+            this.createISetBMD();
+            this.createLabel();
+
             this.inputEnabled = true;
             this.input.priorityID = 100;
-            this.input.pixelPerfectClick=true;
+            this.input.pixelPerfectClick = true;
             this.input.pixelPerfectOver = true;
             this.events.onInputOver.dispatch(this);
         }
 
-        removeNode(nodeV:NodeView){
-            if(this.nodes.indexOf(nodeV)!==-1){
-                this.nodes.splice(this.nodes.indexOf(nodeV),1);
+        removeNode(nodeV: NodeView) {
+            if (this.nodes.indexOf(nodeV) !== -1) {
+                this.nodes.splice(this.nodes.indexOf(nodeV), 1);
             }
+        }
+
+        resetISet(){
+            this.sortNodesLeftToRight();
+            this.createISetBMD();
+            let rightNodePosition = this.nodes[Math.floor(this.nodes.length / 2)].position;
+            let leftNodePosition = this.nodes[Math.floor(this.nodes.length / 2) - 1].position;
+            this.label.position.set((rightNodePosition.x + leftNodePosition.x) * 0.5, (rightNodePosition.y + leftNodePosition.y) * 0.5);
+            if(this.nodes[0].node.player){
+                this.label.setText(this.nodes[0].node.player.getLabel());
+            }
+            if(!this.iSet.player){
+                this.label.alpha = 0;
+            }
+            else{
+                this.label.fill = Phaser.Color.getWebRGB(this.iSet.player.color);
+            }
+            this.nodes.forEach(n=>{
+               n.ownerLabel.alpha = 0;
+            });
         }
 
         /**Sorts the nodes left to right before drawing*/
@@ -41,10 +64,10 @@ module GTE {
         }
 
         /**Create e very thick line that goes through all the points*/
-        private createSimpleISet() {
-            this.bmd = this.game.make.bitmapData(this.game.width, this.game.height);
-            this.bmd.ctx.lineWidth = this.game.height*ISET_LINE_WIDTH;
-            this.bmd.ctx.lineCap= "round";
+        private createISetBMD() {
+            this.bmd.clear();
+            this.bmd.ctx.lineWidth = this.game.height * ISET_LINE_WIDTH;
+            this.bmd.ctx.lineCap = "round";
             this.bmd.ctx.lineJoin = "round";
             this.bmd.ctx.strokeStyle = "#ffffff";
             this.bmd.ctx.beginPath();
@@ -58,21 +81,44 @@ module GTE {
             this.loadTexture(this.bmd);
 
             this.game.add.existing(this);
-            if(this.iSet.player) {
+            if (this.iSet.player) {
                 this.tint = this.iSet.player.color;
             }
-            else{
+            else {
                 this.tint = 0x000000;
             }
             this.alpha = 0.15;
         }
 
+        private createLabel() {
+
+            let rightNodePosition = this.nodes[Math.floor(this.nodes.length / 2)].position;
+            let leftNodePosition = this.nodes[Math.floor(this.nodes.length / 2) - 1].position;
+
+            this.label = this.game.add.text((rightNodePosition.x + leftNodePosition.x) * 0.5, (rightNodePosition.y + leftNodePosition.y) * 0.5, "", null);
+            if(this.nodes[0].node.player){
+                this.label.setText(this.nodes[0].node.player.getLabel());
+            }
+            this.label.fontSize = this.nodes[0].width * LABEL_SIZE / OVERLAY_SCALE;
+            this.label.anchor.set(0.5, 0.5);
+            if(!this.iSet.player){
+                this.label.alpha = 0;
+            }
+            else{
+                this.label.fill = Phaser.Color.getWebRGB(this.iSet.player.color);
+            }
+        }
 
         destroy() {
             this.bmd.destroy();
             this.bmd = null;
             this.nodes = [];
             this.nodes = null;
+            this.label.destroy();
+            if(this.iSet && this.iSet.nodes) {
+                this.iSet.destroy();
+                this.iSet = null;
+            }
             super.destroy(true);
         }
     }

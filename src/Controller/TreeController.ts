@@ -26,11 +26,11 @@ module GTE {
         // An array used to list all nodes that need to be deleted
         private nodesToDelete: Array<Node>;
         selectedNodes: Array<NodeView>;
-        hoverSignal:Phaser.Signal;
+        hoverSignal: Phaser.Signal;
 
-        labelInput:LabelInput;
+        labelInput: LabelInput;
 
-        constructor(game: Phaser.Game, labelInput:LabelInput) {
+        constructor(game: Phaser.Game, labelInput: LabelInput) {
             this.game = game;
             this.labelInput = labelInput;
 
@@ -51,10 +51,10 @@ module GTE {
             this.tree.addNode();
             this.tree.addChildToNode(this.tree.nodes[0]);
             this.tree.addChildToNode(this.tree.nodes[0]);
-            this.tree.addPlayer(new Player(0, "0", 0x000000));
+            this.tree.addPlayer(new Player(0, "chance", 0x000000));
             this.tree.addPlayer(new Player(1, "1", PLAYER_COLORS[0]));
             this.tree.addPlayer(new Player(2, "2", PLAYER_COLORS[1]));
-            this.treeViewProperties = new TreeViewProperties(220, 1000);
+            this.treeViewProperties = new TreeViewProperties(this.game.height * INITIAL_TREE_HEIGHT, this.game.width * INITIAL_TREE_WIDTH);
             this.treeView = new TreeView(this.game, this.tree, this.treeViewProperties);
             this.treeView.nodes[0].ownerLabel.text = "A";
             this.treeView.nodes[1].ownerLabel.text = "B";
@@ -65,7 +65,7 @@ module GTE {
         /**The update method is built-into Phaser and is called 60 times a second.
          * It handles the selection of nodes, while holding the mouse button*/
         update() {
-            if (this.game.input.activePointer.isDown) {
+            if (this.game.input.activePointer.isDown && this.selectionRectangle.active) {
                 this.treeView.nodes.forEach((n: NodeView) => {
                     if (this.selectionRectangle.overlap(n) && this.selectedNodes.indexOf(n) === -1) {
                         // n.setColor(NODE_SELECTED_COLOR);
@@ -99,9 +99,10 @@ module GTE {
                 this.attachHandlersToNode(n);
             });
         }
+
         /** Empties the selected nodes in a better way*/
-        emptySelectedNodes(){
-            while(this.selectedNodes.length!==0){
+        emptySelectedNodes() {
+            while (this.selectedNodes.length !== 0) {
                 this.selectedNodes.pop();
             }
         }
@@ -109,41 +110,41 @@ module GTE {
         /** The node specific method for attaching handlers
          * Also when we add node we attach the handler for the parent move label*/
         private attachHandlersToNode(n: NodeView) {
-            n.events.onInputOver.add(()=>{
+            n.events.onInputOver.add(() => {
                 this.handleInputOverNode(n);
             });
-            n.events.onInputDown.add(()=>{
+            n.events.onInputDown.add(() => {
                 this.handleInputDownNode(n);
             });
-            n.events.onInputOut.add(()=>{
+            n.events.onInputOut.add(() => {
                 this.handleInputOutNode(n);
             });
 
-            n.ownerLabel.events.onInputDown.add(function(){
+            n.ownerLabel.events.onInputDown.add(function () {
                 let nodeLabel = arguments[0];
-                this.handleInputDownNodeLabel(nodeLabel,n);
-            },this);
+                this.handleInputDownNodeLabel(nodeLabel, n);
+            }, this);
 
-            n.payoffsLabel.events.onInputDown.add(function(){
-               let nodeLabel = arguments[0];
-               this.handleInputDownNodePayoffs(nodeLabel,n);
-            },this);
+            n.payoffsLabel.events.onInputDown.add(function () {
+                let nodeLabel = arguments[0];
+                this.handleInputDownNodePayoffs(nodeLabel, n);
+            }, this);
 
             if (n.node.parentMove) {
                 let move = this.treeView.findMoveView(n.node.parentMove);
                 move.label.events.onInputDown.add(function () {
                     let moveLabel = arguments[0];
-                    this.handleInputDownMoveLabel(moveLabel,move);
-                },this);
+                    this.handleInputDownMoveLabel(moveLabel, move);
+                }, this);
             }
         }
 
         /**The iSet specific method for attaching handlers*/
-        attachHandlersToISet(iSet:ISetView){
-            iSet.events.onInputOver.add(function(){
-               let iSet = <ISetView>arguments[0];
-               this.handleInputOverISet(iSet);
-            },this);
+        attachHandlersToISet(iSet: ISetView) {
+            iSet.events.onInputOver.add(function () {
+                let iSet = <ISetView>arguments[0];
+                this.handleInputOverISet(iSet);
+            }, this);
         }
 
         /**Handler for the signal HOVER on a Node*/
@@ -166,35 +167,35 @@ module GTE {
         }
 
         /**Handler for the signal HOVER on an ISet*/
-        private handleInputOverISet(iSetV:ISetView){
-            if(!this.game.input.activePointer.isDown){
+        private handleInputOverISet(iSetV: ISetView) {
+            if (!this.game.input.activePointer.isDown) {
                 this.hoverSignal.dispatch(iSetV);
             }
         }
 
         /**Halder for the signal CLICK on a Move Label*/
-        private handleInputDownMoveLabel(label:Phaser.Text,move:MoveView){
-            if(label.alpha!==0) {
+        private handleInputDownMoveLabel(label: Phaser.Text, move: MoveView) {
+            if (label.alpha !== 0) {
                 this.labelInput.show(label, move);
             }
         }
 
         /**Handler for the signal CLICK on a Node Label*/
-        private handleInputDownNodeLabel(label:Phaser.Text,node:NodeView){
-            if(label.alpha!==0) {
+        private handleInputDownNodeLabel(label: Phaser.Text, node: NodeView) {
+            if (label.alpha !== 0) {
                 this.labelInput.show(label, node);
             }
         }
 
-        private handleInputDownNodePayoffs(label:Phaser.Text,node:NodeView){
-            if(label.alpha!==0) {
+        private handleInputDownNodePayoffs(label: Phaser.Text, node: NodeView) {
+            if (label.alpha !== 0) {
                 this.labelInput.show(label, node);
             }
         }
 
 
         /**Adding child or children to a node*/
-        addNodeHandler(nodeV:NodeView){
+        addNodeHandler(nodeV: NodeView) {
             this.handleInputOutNode(nodeV);
             if (nodeV.node.children.length === 0) {
                 let child1 = this.treeView.addChildToNode(nodeV);
@@ -233,7 +234,7 @@ module GTE {
         /** A method for assigning a player to a given node.*/
         assignPlayerToNode(playerID: number, n: NodeView) {
             //if someone adds player 4 before adding player 3, we will add player 3 instead.
-            if(playerID>this.tree.players.length){
+            if (playerID > this.tree.players.length) {
                 playerID--;
             }
 
@@ -241,9 +242,9 @@ module GTE {
 
             n.node.convertToLabeled(this.tree.findPlayerById(playerID));
             // If the node is in an iset, change the owner of the iSet to the new player
-            if(n.node.iSet && n.node.iSet.nodes.length>1){
+            if (n.node.iSet && n.node.iSet.nodes.length > 1) {
                 let iSetView = this.treeView.findISetView(n.node.iSet);
-                iSetView.nodes.forEach(nv=>{
+                iSetView.nodes.forEach(nv => {
                     nv.resetNodeDrawing();
                     nv.resetLabelText(this.treeViewProperties.zeroSumOn);
                 });
@@ -256,29 +257,30 @@ module GTE {
         }
 
         /**A method for assigning chance player to a given node*/
-        assignChancePlayerToNode(n:NodeView){
+        assignChancePlayerToNode(n: NodeView) {
             n.node.convertToChance(this.tree.players[0]);
             n.resetNodeDrawing();
             n.resetLabelText(this.treeViewProperties.zeroSumOn);
             this.resetTree();
 
         }
+
         /**A method for adding a new player if there isn't one created already*/
-        addPlayer(playerID:number){
+        addPlayer(playerID: number) {
             //if someone adds player 4 before adding player 3, we will add player 3 instead.
-            if(playerID>this.tree.players.length){
+            if (playerID > this.tree.players.length) {
                 playerID--;
             }
 
             if (playerID > this.tree.players.length - 1) {
                 this.tree.addPlayer(new Player(playerID, playerID.toString(), PLAYER_COLORS[playerID - 1]));
-                $("#player-number").html((this.tree.players.length-1).toString());
+                $("#player-number").html((this.tree.players.length - 1).toString());
                 this.treeView.drawLabels();
             }
         }
 
         /**Creates an iSet with the corresponding checks*/
-        createISet(nodesV:Array<NodeView>) {
+        createISet(nodesV: Array<NodeView>) {
             let nodes = [];
             nodesV.forEach(n => {
                 nodes.push(n.node);
@@ -303,28 +305,30 @@ module GTE {
                     this.tree.removeISet(n.node.iSet);
                     this.treeView.removeISetView(iSetView);
                 }
-                else{
+                else {
                     iSetNodes.push(n.node);
                 }
 
-                if(n.node.player){
+                if (n.node.player) {
                     player = n.node.player;
                 }
             });
 
-            this.tree.addISet(player,iSetNodes);
+            let iSet = this.tree.addISet(player, iSetNodes);
+            let iSetV = this.treeView.addISetView(iSet);
+            this.attachHandlersToISet(iSetV);
             this.resetTree();
         }
 
         /**A method for deleting an iSet*/
-        removeISetHandler(iSet:ISet){
+        removeISetHandler(iSet: ISet) {
             this.tree.removeISet(iSet);
             this.treeView.removeISetView(this.treeView.findISetView(iSet));
             this.resetTree();
         }
 
         /**A method which removes all isets from the selected nodes*/
-        removeISetsByNodesHandler(){
+        removeISetsByNodesHandler() {
             let iSetsToRemove = this.getSelectedISets();
 
             for (let i = 0; i < iSetsToRemove.length; i++) {
@@ -334,10 +338,10 @@ module GTE {
         }
 
         /**A helper method which returns all iSets from the selected nodes*/
-        getSelectedISets(){
+        getSelectedISets() {
             let distinctISets = [];
-            this.selectedNodes.forEach((n)=>{
-                if(n.node.iSet && distinctISets.indexOf(n.node.iSet)===-1){
+            this.selectedNodes.forEach((n) => {
+                if (n.node.iSet && distinctISets.indexOf(n.node.iSet) === -1) {
                     distinctISets.push(n.node.iSet);
                 }
             });
@@ -346,30 +350,30 @@ module GTE {
         }
 
         /**A method which cuts the information set*/
-        cutInformationSet(iSetV:ISetView,x:number,y:number){
-            if(iSetV.nodes.length === 2){
+        cutInformationSet(iSetV: ISetView, x: number, y: number) {
+            if (iSetV.nodes.length === 2) {
                 this.removeISetHandler(iSetV.iSet);
             }
-            else{
+            else {
                 let leftNodes = [];
                 let rightNodes = [];
-                iSetV.nodes.forEach(n=>{
-                    if(n.x<=x){
+                iSetV.nodes.forEach(n => {
+                    if (n.x <= x) {
                         leftNodes.push(n);
                     }
-                    else{
+                    else {
                         rightNodes.push(n);
                     }
                 });
-                if(leftNodes.length===1){
+                if (leftNodes.length === 1) {
                     iSetV.iSet.removeNode(leftNodes[0].node);
                     iSetV.removeNode(leftNodes[0]);
                 }
-                else if(rightNodes.length===1){
+                else if (rightNodes.length === 1) {
                     iSetV.iSet.removeNode(rightNodes[0].node);
                     iSetV.removeNode(rightNodes[0]);
                 }
-                else{
+                else {
                     this.removeISetHandler(iSetV.iSet);
                     this.createISet(leftNodes);
                     this.createISet(rightNodes);
@@ -379,23 +383,19 @@ module GTE {
         }
 
         /**A method for assigning random payoffs to nodes*/
-        randomPayoffs(){
+        randomPayoffs() {
             let leaves = this.tree.getLeaves();
-            leaves.forEach((n:Node)=>{
+            leaves.forEach((n: Node) => {
                 n.payoffs.setRandomPayoffs();
             });
             this.resetTree();
         }
 
         /**A method for resetting the tree after each action on the tree*/
-        private resetTree(){
+        private resetTree() {
 
-            if (this.tree.nodes.length>1) {
+            if (this.tree.nodes.length > 1) {
                 this.treeView.drawTree();
-
-                this.treeView.iSets.forEach(iSetV => {
-                    this.attachHandlersToISet(iSetV);
-                });
             }
         }
 

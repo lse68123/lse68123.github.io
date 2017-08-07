@@ -9,7 +9,6 @@ var GTE;
             var _this = this;
             this.player = player;
             this.nodes = [];
-            this.label = "";
             if (nodes) {
                 nodes.forEach(function (n) {
                     _this.addNode(n);
@@ -37,15 +36,9 @@ var GTE;
         };
         ISet.prototype.changePlayer = function (player) {
             this.player = player;
-            this.nodes.forEach(function (n) {
-                n.convertToLabeled(player);
-            });
-        };
-        ISet.prototype.addLabel = function (label) {
-            this.label = label;
-        };
-        ISet.prototype.removeLabel = function () {
-            this.label = "";
+            if (this.nodes[0]) {
+                this.nodes[0].convertToLabeled(player);
+            }
         };
         /**The destroy method ensures that there are no memory-leaks */
         ISet.prototype.destroy = function () {

@@ -28,9 +28,8 @@ var GTE;
             _this.height = Phaser.Point.distance(_this.from.position, _this.to.position);
             _this.label = _this.game.add.text(0, 0, _this.move.label, null);
             _this.label.anchor.set(0.5, 0.5);
-            _this.label.fontSize = _this.from.width * 0.44;
-            _this.label.fill = _this.from.ownerLabel.tint;
-            _this.label.fontStyle = "italic";
+            _this.label.padding.x = 3;
+            _this.label.align = "center";
             _this.label.fontWeight = 200;
             _this.label.inputEnabled = true;
             _this.label.events.onInputDown.dispatch(_this);
@@ -43,7 +42,7 @@ var GTE;
             this.rotation = Phaser.Point.angle(this.from.position, this.to.position) + Math.PI / 2;
             this.height = Phaser.Point.distance(this.from.position, this.to.position);
         };
-        MoveView.prototype.updateLabel = function (fractionOn) {
+        MoveView.prototype.updateLabel = function (fractionOn, levelHeight) {
             if (this.move.from.type === GTE.NodeType.CHANCE && this.move.probability !== null) {
                 this.label.text = this.move.getProbabilityText(fractionOn);
             }
@@ -54,20 +53,28 @@ var GTE;
                 this.label.text = "";
                 this.label.alpha = 0;
             }
-            var center = new Phaser.Point(Math.abs((this.from.x + this.to.x) / 2), Math.abs((this.from.y + this.to.y) / 2));
+            var labelPosition = this.from.position.clone();
+            var direction = new Phaser.Point(this.to.position.x - this.from.position.x, this.to.position.y - this.from.position.y);
+            direction.normalize();
+            direction.setMagnitude(levelHeight * 0.6);
+            labelPosition.add(direction.x, direction.y);
             if (this.rotation > 0) {
-                center.x = center.x - this.label.height / 2;
+                labelPosition.x = labelPosition.x - this.label.width * 0.6;
             }
             else {
-                center.x = center.x + this.label.height / 2;
+                labelPosition.x = labelPosition.x + this.label.width * 0.6 + this.label.padding.x;
             }
-            this.label.x = center.x;
-            this.label.y = center.y - this.label.height * 0.33;
+            this.label.x = labelPosition.x;
+            this.label.y = labelPosition.y - this.label.height * 0.3;
             if (this.move.from.type === GTE.NodeType.OWNED) {
                 this.label.fill = this.from.ownerLabel.fill;
+                this.label.fontStyle = "italic";
+                this.label.fontSize = this.from.width * 0.42;
             }
             else if (this.move.from.type === GTE.NodeType.CHANCE) {
                 this.label.fill = "#000";
+                this.label.fontStyle = "normal";
+                this.label.fontSize = this.from.width * 0.35;
             }
         };
         MoveView.prototype.destroy = function () {

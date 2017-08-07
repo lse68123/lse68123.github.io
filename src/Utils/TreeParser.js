@@ -60,7 +60,6 @@ var GTE;
                     label: null,
                     nodeIndexes: []
                 };
-                iSet.label = is.label;
                 is.nodes.forEach(function (n) {
                     iSet.nodeIndexes.push(tree.nodes.indexOf(n));
                 });
@@ -90,9 +89,9 @@ var GTE;
             });
             strippedTree.iSets.forEach(function (is) {
                 var iSet = new GTE.ISet();
-                iSet.label = is.label;
                 is.nodeIndexes.forEach(function (i) {
                     iSet.nodes.push(clonedTree.nodes[i]);
+                    clonedTree.nodes[i].iSet = iSet;
                 });
                 iSet.player = iSet.nodes[0].player;
                 clonedTree.iSets.push(iSet);

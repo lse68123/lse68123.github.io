@@ -64,8 +64,8 @@ module GTE {
 
         /**Resets the current Tree*/
         createNewTree() {
-            this.treeController.deleteNodeHandler(this.treeController.tree.root);
-            this.treeController.addNodeHandler(this.treeController.treeView.nodes[0]);
+            this.deleteNodeHandler(this.treeController.treeView.nodes[0]);
+            this.addNodesHandler(this.treeController.treeView.nodes[0]);
         }
 
         /**Saves a tree to a txt file*/
@@ -90,7 +90,6 @@ module GTE {
 
         /**A method which loads the tree from a selected file*/
         private loadTreeFromFile(text: string) {
-            console.log("handler");
             try {
                 this.treeController.deleteNodeHandler(this.treeController.tree.root);
                 this.treeController.treeView.nodes[0].destroy();
@@ -151,12 +150,13 @@ module GTE {
                     this.treeController.addNodeHandler(n);
                 });
             }
+            this.treeController.tree.cleanISets();
+            this.treeController.treeView.cleanISets();
             this.undoRedoController.saveNewTree();
         }
 
         /** A method for deleting nodes (keyboard DELETE).*/
         deleteNodeHandler(nodeV?: NodeView) {
-
             if (nodeV) {
                 this.treeController.deleteNodeHandler(nodeV.node);
             }
@@ -177,6 +177,8 @@ module GTE {
             deletedNodes.forEach(n => {
                 this.treeController.selectedNodes.splice(this.treeController.selectedNodes.indexOf(n), 1);
             });
+            this.treeController.tree.cleanISets();
+            this.treeController.treeView.cleanISets();
             this.undoRedoController.saveNewTree();
         }
 
@@ -343,8 +345,7 @@ module GTE {
 
         /**If the label input is active, go to the next label
          * If next is false, we go to the previous label*/
-        activateLabel(next: boolean) {
-
+        activateLabelField(next: boolean) {
             if (this.treeController.labelInput.active) {
                 if (this.treeController.labelInput.shouldRecalculateOrder) {
                     this.nodesBFSOrder = this.treeController.tree.BFSOnTree();
@@ -397,31 +398,34 @@ module GTE {
             if (this.treeController.labelInput.active) {
                 // If we are looking at moves
                 if (this.treeController.labelInput.currentlySelected instanceof MoveView) {
-                    this.treeController.tree.changeMoveLabel((<MoveView>this.treeController.labelInput.currentlySelected).move, this.treeController.labelInput.inputField.val());
+                    let moveV = (<MoveView>this.treeController.labelInput.currentlySelected);
+                    this.treeController.tree.changeMoveLabel(moveV.move, this.treeController.labelInput.inputField.val());
                     this.treeController.treeView.moves.forEach(m => {
-                        m.updateLabel(this.treeController.treeViewProperties.fractionOn);
+                        m.updateLabel(this.treeController.treeViewProperties.fractionOn, this.treeController.treeViewProperties.levelHeight);
                     });
-                    this.activateLabel(true);
                 }
                 // If we are currently looking at nodes
                 else if (this.treeController.labelInput.currentlySelected instanceof NodeView) {
 
-                    if ((<NodeView>this.treeController.labelInput.currentlySelected).ownerLabel.alpha === 1) {
-                        (<NodeView>this.treeController.labelInput.currentlySelected).node.player.label = this.treeController.labelInput.inputField.val();
-                        this.treeController.treeView.nodes.forEach((n: NodeView) => {
-                            n.resetLabelText(this.treeController.treeViewProperties.zeroSumOn);
+                    let nodeV = (<NodeView>this.treeController.labelInput.currentlySelected);
+                    if (nodeV.ownerLabel.alpha === 1) {
+                        nodeV.node.player.label = this.treeController.labelInput.inputField.val();
+                        this.treeController.treeView.nodes.forEach(n=>{
+                            if(n.node.player) {
+                                n.ownerLabel.setText(n.node.player.getLabel(), true);
+                            }
                         });
-                        this.activateLabel(true);
+
                     }
                     else {
-
-                        (<NodeView>this.treeController.labelInput.currentlySelected).node.payoffs.loadFromString(this.treeController.labelInput.inputField.val());
-                        this.treeController.treeView.nodes.forEach((n: NodeView) => {
+                        nodeV.node.payoffs.loadFromString(this.treeController.labelInput.inputField.val());
+                        this.treeController.treeView.nodes.forEach(n=>{
                             n.resetLabelText(this.treeController.treeViewProperties.zeroSumOn);
                         });
-                        this.activateLabel(true);
                     }
+
                 }
+                this.activateLabelField(true);
                 this.undoRedoController.saveNewTree();
             }
         }
@@ -429,7 +433,7 @@ module GTE {
         /**Hides then input*/
         hideInputLabel() {
             if (this.treeController.labelInput.active) {
-                this.treeController.labelInput.hideLabel();
+                this.treeController.labelInput.hide();
             }
         }
 
@@ -468,7 +472,19 @@ module GTE {
             return current;
         }
 
-        //TEST METHOD!
+        /**Moves a node manually and does not move the children*/
+        moveNodeManually(directionX: number, directionY: number, distance: number) {
+            this.treeController.selectedNodes.forEach(node => {
+                node.position.add(directionX * distance, directionY * distance);
+                node.resetNodeDrawing();
+            });
+            this.treeController.treeView.moves.forEach(m => {
+                m.updateMovePosition();
+                m.updateLabel(this.treeController.treeViewProperties.fractionOn, this.treeController.treeViewProperties.levelHeight);
+            });
+            this.treeController.treeView.drawISets();
+        }
+
         createStrategicForm() {
             if (this.strategicForm) {
                 this.strategicForm.destroy();
@@ -479,6 +495,18 @@ module GTE {
             try {
                 this.strategicForm = new StrategicForm(this.treeController.tree);
                 this.strategicFormView = new StrategicFormView(this.game, this.strategicForm);
+                this.strategicFormView.background.events.onDragStart.add(()=>{
+                    this.game.canvas.style.cursor = "move";
+                   this.treeController.selectionRectangle.active = false;
+                });
+                this.strategicFormView.background.events.onDragStop.add(()=>{
+                    this.game.canvas.style.cursor = "move";
+                    this.treeController.selectionRectangle.active = true;
+                });
+                this.strategicFormView.closeIcon.events.onInputDown.add(()=>{
+                   this.strategicForm.destroy();
+                   this.strategicFormView.destroy();
+                });
             }
             catch (err) {
                 this.treeController.errorPopUp.show(err.message);

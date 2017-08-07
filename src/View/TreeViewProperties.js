@@ -5,7 +5,7 @@ var GTE;
     var TreeViewProperties = (function () {
         function TreeViewProperties(levelHeight, initialLevelDistance) {
             this.levelHeight = levelHeight;
-            this.initialLevelDistance = initialLevelDistance;
+            this.treeWidth = initialLevelDistance;
             this.zeroSumOn = false;
             this.fractionOn = true;
         }

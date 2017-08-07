@@ -54,11 +54,18 @@ var GTE;
         /**Converts the current Node to a labeled, by setting an player */
         Node.prototype.convertToLabeled = function (player) {
             if (this.children.length > 0) {
-                this.type = NodeType.OWNED;
-                this.player = player;
-                this.childrenMoves.forEach(function (c) { return c.convertToLabeled(); });
-                if (this.iSet && this.iSet.nodes.length > 1) {
-                    this.iSet.changePlayer(this.player);
+                if (this.iSet && this.iSet.nodes) {
+                    this.iSet.player = player;
+                    this.iSet.nodes.forEach(function (n) {
+                        n.type = NodeType.OWNED;
+                        n.player = player;
+                        n.childrenMoves.forEach(function (c) { return c.convertToLabeled(); });
+                    });
+                }
+                else {
+                    this.type = NodeType.OWNED;
+                    this.player = player;
+                    this.childrenMoves.forEach(function (c) { return c.convertToLabeled(); });
                 }
             }
         };
@@ -117,17 +124,21 @@ var GTE;
             }
             if (this.iSet) {
                 this.iSet.removeNode(this);
+                this.iSet = null;
             }
             if (this.payoffs) {
                 this.payoffs.destroy();
+                this.payoffs = null;
             }
             if (this.children.length > 0) {
                 this.children.forEach(function (c) { return c.destroy(); });
+                this.children = null;
             }
             if (this.childrenMoves.length > 0) {
                 this.childrenMoves.forEach(function (m) {
                     m.destroy();
                 });
+                this.childrenMoves = null;
             }
         };
         return Node;

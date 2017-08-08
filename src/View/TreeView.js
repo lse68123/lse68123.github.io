@@ -55,7 +55,7 @@ var GTE;
             this.centerParents();
             this.centerGroupOnScreen();
             this.drawISets();
-            this.drawLabels();
+            this.drawLabels(true);
             this.treeTweenManager.startTweens(this.nodes, this.moves, this.iSets, this.properties.fractionOn);
             // NOTE: All other moves will be updated from the tween manager.
             if (this.moves.length > 0) {
@@ -193,10 +193,12 @@ var GTE;
             }
         };
         /** A method which decides whether to show the labels or not*/
-        TreeView.prototype.drawLabels = function () {
+        TreeView.prototype.drawLabels = function (shouldResetLabels) {
             var _this = this;
             if (this.tree.checkAllNodesLabeled()) {
-                this.tree.resetLabels();
+                if (shouldResetLabels) {
+                    this.tree.resetLabels();
+                }
                 this.moves.forEach(function (m) {
                     m.label.alpha = 1;
                     m.updateLabel(_this.properties.fractionOn, _this.properties.levelHeight);

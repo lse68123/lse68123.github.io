@@ -207,6 +207,8 @@ module GTE {
                 let child1 = this.treeView.addChildToNode(nodeV);
                 this.attachHandlersToNode(child1);
             }
+            this.tree.cleanISets();
+            this.treeView.cleanISets();
             this.resetTree();
         }
 
@@ -228,6 +230,8 @@ module GTE {
                 this.nodesToDelete = [];
                 node.convertToDefault();
             }
+            this.tree.cleanISets();
+            this.treeView.cleanISets();
             this.resetTree();
         }
 
@@ -243,6 +247,7 @@ module GTE {
             n.node.convertToLabeled(this.tree.findPlayerById(playerID));
             // If the node is in an iset, change the owner of the iSet to the new player
             if (n.node.iSet && n.node.iSet.nodes.length > 1) {
+                n.node.iSet.player = this.tree.players[playerID];
                 let iSetView = this.treeView.findISetView(n.node.iSet);
                 iSetView.nodes.forEach(nv => {
                     nv.resetNodeDrawing();
@@ -275,7 +280,7 @@ module GTE {
             if (playerID > this.tree.players.length - 1) {
                 this.tree.addPlayer(new Player(playerID, playerID.toString(), PLAYER_COLORS[playerID - 1]));
                 $("#player-number").html((this.tree.players.length - 1).toString());
-                this.treeView.drawLabels();
+                this.treeView.drawLabels(true);
             }
         }
 

@@ -8,7 +8,6 @@ module GTE{
 
 
         constructor(payoffs?:Array<number>){
-            this.outcomes = [];
             this.playersCount = 2;
 
             if(payoffs){
@@ -45,6 +44,12 @@ module GTE{
         convertToZeroSum(){
             if(this.playersCount === 2){
                 this.outcomes[1]=-this.outcomes[0];
+            }
+        }
+
+        add(payoffsToAdd:Array<number>){
+            for (let i = 0; i < this.outcomes.length; i++) {
+                this.outcomes[i]+=payoffsToAdd[i];
             }
         }
 

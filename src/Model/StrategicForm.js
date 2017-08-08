@@ -2,6 +2,7 @@
 ///<reference path="Node.ts"/>
 ///<reference path="Move.ts"/>
 ///<reference path="../Utils/Constants.ts"/>
+///<reference path="Payoffs.ts"/>
 var GTE;
 (function (GTE) {
     /**The class which will calculate the strategic form from the given tree */
@@ -44,8 +45,7 @@ var GTE;
             this.p2Strategies = [];
             this.generateStrategies(p1InfoSets);
             this.generateStrategies(p2InfoSets);
-            // this.strategyToString(this.p1Strategies);
-            // this.strategyToString(this.p2Strategies);
+            this.generatePayoffs();
         };
         /**A method which generates the strategies for a specific player, given his collection of iSets*/
         StrategicForm.prototype.generateStrategies = function (infoSets) {
@@ -152,6 +152,92 @@ var GTE;
                 current = current.parent;
             }
             return false;
+        };
+        StrategicForm.prototype.generatePayoffs = function () {
+            var _this = this;
+            var rows = this.p1Strategies.length;
+            var cols = this.p2Strategies.length;
+            this.payoffsMatrix = [];
+            for (var i = 0; i < rows; i++) {
+                this.payoffsMatrix[i] = [];
+                for (var j = 0; j < cols; j++) {
+                    this.payoffsMatrix[i][j] = new GTE.Payoffs();
+                }
+            }
+            var leaves = this.tree.getLeaves();
+            leaves.forEach(function (leaf) {
+                _this.getMovesPathToRoot(leaf);
+                _this.reachableRows = [];
+                _this.reachableCols = [];
+                // Vector - either a row or a column
+                _this.getReachableVectors(_this.reachableRows, _this.p1Strategies, _this.movesToReachLeafP1);
+                _this.getReachableVectors(_this.reachableCols, _this.p2Strategies, _this.movesToReachLeafP2);
+                var payoffsToAdd = leaf.payoffs.outcomes;
+                for (var i = 0; i < payoffsToAdd.length; i++) {
+                    payoffsToAdd[i] = Math.round(payoffsToAdd[i] * _this.probabilityPerPath);
+                }
+                // this.currentPathToString(leaf);
+                for (var i = 0; i < _this.reachableRows.length; i++) {
+                    for (var j = 0; j < _this.reachableCols.length; j++) {
+                        _this.payoffsMatrix[_this.reachableRows[i]][_this.reachableCols[j]].add(payoffsToAdd);
+                    }
+                }
+            }, this);
+        };
+        // For debugging purposes
+        StrategicForm.prototype.currentPathToString = function (leaf) {
+            var result = "" + leaf.payoffs.outcomes + "-> ";
+            this.movesToReachLeafP1.forEach(function (m) {
+                result += m.label + " ";
+            });
+            result += "|| ";
+            this.movesToReachLeafP2.forEach(function (m) {
+                result += m.label + " ";
+            });
+            result += "\nReachable Rows: " + this.reachableRows.join(",");
+            result += "\nReachable Cols: " + this.reachableCols.join(",");
+            console.log(result);
+        };
+        StrategicForm.prototype.getMovesPathToRoot = function (leaf) {
+            this.movesToReachLeafP1 = [];
+            this.movesToReachLeafP2 = [];
+            this.probabilityPerPath = 1;
+            var current = leaf;
+            while (current.parent) {
+                if (current.parent.type === GTE.NodeType.CHANCE) {
+                    this.probabilityPerPath *= current.parentMove.probability;
+                }
+                else if (current.parent.type === GTE.NodeType.OWNED) {
+                    if (current.parent.player === this.tree.players[1]) {
+                        this.movesToReachLeafP1.push(current.parentMove);
+                    }
+                    else if (current.parent.player === this.tree.players[2]) {
+                        this.movesToReachLeafP2.push(current.parentMove);
+                    }
+                }
+                current = current.parent;
+            }
+        };
+        StrategicForm.prototype.getReachableVectors = function (vector, allStrategies, strategiesOnPath) {
+            for (var i = 0; i < allStrategies.length; i++) {
+                var currentStrategy = allStrategies[i];
+                var containsAllOnPath = true;
+                for (var j = 0; j < strategiesOnPath.length; j++) {
+                    var moveOnPath = strategiesOnPath[j];
+                    if (currentStrategy.indexOf(moveOnPath) === -1) {
+                        containsAllOnPath = false;
+                        break;
+                    }
+                }
+                if (containsAllOnPath) {
+                    vector.push(i);
+                }
+            }
+            if (vector.length === 0) {
+                for (var i = 0; i < allStrategies.length; i++) {
+                    vector.push(i);
+                }
+            }
         };
         StrategicForm.prototype.checkStrategicFormPossible = function () {
             if (this.tree.players.length !== 3) {

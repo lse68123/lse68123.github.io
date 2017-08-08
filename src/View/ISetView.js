@@ -51,6 +51,7 @@ var GTE;
                 this.label.alpha = 0;
             }
             else {
+                this.label.alpha = 1;
                 this.label.fill = Phaser.Color.getWebRGB(this.iSet.player.color);
             }
             this.nodes.forEach(function (n) {

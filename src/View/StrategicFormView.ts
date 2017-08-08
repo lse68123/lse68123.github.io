@@ -52,7 +52,10 @@ module GTE {
         generateGrid(cellWidth: number, cellStroke: number) {
             for (let i = 0; i < this.rows.length; i++) {
                 for (let j = 0; j < this.cols.length; j++) {
-                    this.cells.push(new SCell(this.game, j * (cellWidth - 0.5 * cellStroke), i * (cellWidth - 0.5 * cellStroke), this.group));
+                    this.cells.push(new SCell(this.game, j * (cellWidth - 0.5 * cellStroke), i * (cellWidth - 0.5 * cellStroke),
+                        this.strategicForm.payoffsMatrix[i][j].outcomes[0].toString(),
+                        this.strategicForm.payoffsMatrix[i][j].outcomes[1].toString(),
+                        this.group));
                 }
             }
         }

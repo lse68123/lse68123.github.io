@@ -2,6 +2,7 @@
 ///<reference path="Node.ts"/>
 ///<reference path="Move.ts"/>
 ///<reference path="../Utils/Constants.ts"/>
+///<reference path="Payoffs.ts"/>
 module GTE {
     /**The class which will calculate the strategic form from the given tree */
     export class StrategicForm {
@@ -10,13 +11,20 @@ module GTE {
         strategies: Array<Array<string>>;
         p1Strategies: Array<Array<Move>>;
         p2Strategies: Array<Array<Move>>;
+        payoffsMatrix: Array<Array<Payoffs>>;
+
+        // Properties for the generation of payoffs matrix
+        private movesToReachLeafP1: Array<Move>;
+        private movesToReachLeafP2: Array<Move>;
+        private probabilityPerPath: number;
+        private reachableRows: Array<number>;
+        private reachableCols: Array<number>;
 
         constructor(tree: Tree) {
             this.tree = tree;
             this.strategies = [];
             this.strategies[0] = [];
             this.strategies[1] = [];
-
             this.generateStrategicForm();
         }
 
@@ -53,9 +61,7 @@ module GTE {
             this.p2Strategies = [];
             this.generateStrategies(p1InfoSets);
             this.generateStrategies(p2InfoSets);
-            // this.strategyToString(this.p1Strategies);
-            // this.strategyToString(this.p2Strategies);
-
+            this.generatePayoffs();
         }
 
         /**A method which generates the strategies for a specific player, given his collection of iSets*/
@@ -127,6 +133,7 @@ module GTE {
             }
         }
 
+
         // A helper method for the recursion
         private isFirstMove(node: Node) {
             let current = node.parent;
@@ -176,16 +183,109 @@ module GTE {
             return false;
         }
 
+        generatePayoffs() {
+            let rows = this.p1Strategies.length;
+            let cols = this.p2Strategies.length;
+            this.payoffsMatrix = [];
+            for (let i = 0; i < rows; i++) {
+                this.payoffsMatrix[i] = [];
+                for (let j = 0; j < cols; j++) {
+                    this.payoffsMatrix[i][j] = new Payoffs();
+                }
+            }
+            let leaves = this.tree.getLeaves();
+            leaves.forEach((leaf: Node) => {
+                this.getMovesPathToRoot(leaf);
+                this.reachableRows = [];
+                this.reachableCols = [];
+
+                // Vector - either a row or a column
+                this.getReachableVectors(this.reachableRows, this.p1Strategies, this.movesToReachLeafP1);
+                this.getReachableVectors(this.reachableCols, this.p2Strategies, this.movesToReachLeafP2);
+
+                let payoffsToAdd = leaf.payoffs.outcomes;
+                for (let i = 0; i < payoffsToAdd.length; i++) {
+                    payoffsToAdd[i] = Math.round(payoffsToAdd[i]*this.probabilityPerPath);
+                }
+
+                // this.currentPathToString(leaf);
+
+                for (let i = 0; i < this.reachableRows.length; i++) {
+                    for (let j = 0; j < this.reachableCols.length; j++) {
+                        this.payoffsMatrix[this.reachableRows[i]][this.reachableCols[j]].add(payoffsToAdd);
+                    }
+                }
+            },this);
+        }
+
+        // For debugging purposes
+        private currentPathToString(leaf:Node){
+            let result = ""+leaf.payoffs.outcomes + "-> ";
+            this.movesToReachLeafP1.forEach(m=>{
+               result+=m.label+" "
+            });
+            result +="|| ";
+            this.movesToReachLeafP2.forEach(m=>{
+                result+=m.label+" "
+            });
+            result+="\nReachable Rows: " +this.reachableRows.join(",");
+            result+="\nReachable Cols: " +this.reachableCols.join(",");
+            console.log(result);
+        }
+
+        private getMovesPathToRoot(leaf: Node) {
+            this.movesToReachLeafP1 = [];
+            this.movesToReachLeafP2 = [];
+            this.probabilityPerPath = 1;
+            let current = leaf;
+            while (current.parent) {
+                if (current.parent.type === NodeType.CHANCE) {
+                    this.probabilityPerPath *= current.parentMove.probability;
+                }
+                else if (current.parent.type === NodeType.OWNED) {
+                    if (current.parent.player === this.tree.players[1]) {
+                        this.movesToReachLeafP1.push(current.parentMove)
+                    }
+                    else if (current.parent.player === this.tree.players[2]) {
+                        this.movesToReachLeafP2.push(current.parentMove)
+                    }
+                }
+                current = current.parent;
+            }
+        }
+
+        private getReachableVectors(vector:Array<number>, allStrategies:Array<Array<Move>>, strategiesOnPath:Array<Move>){
+            for (let i = 0; i < allStrategies.length; i++) {
+                let currentStrategy = allStrategies[i];
+                let containsAllOnPath = true;
+                for (let j = 0; j < strategiesOnPath.length; j++) {
+                    let moveOnPath = strategiesOnPath[j];
+                    if(currentStrategy.indexOf(moveOnPath) === -1){
+                        containsAllOnPath = false;
+                        break;
+                    }
+                }
+                if(containsAllOnPath){
+                    vector.push(i);
+                }
+            }
+
+            if(vector.length===0){
+                for (let i = 0; i < allStrategies.length; i++) {
+                    vector.push(i);
+                }
+            }
+        }
+
         checkStrategicFormPossible() {
             if (this.tree.players.length !== 3) {
                 throw new Error(STRATEGIC_PLAYERS_ERROR_TEXT);
             }
-            if(!this.tree.checkAllNodesLabeled()){
+            if (!this.tree.checkAllNodesLabeled()) {
                 throw new Error(STRATEGIC_NOT_LABELED_ERROR_TEXT);
             }
             this.tree.perfectRecallCheck();
         }
-
 
 
         strategyToString(strategies) {
@@ -202,12 +302,12 @@ module GTE {
                     }
 
                 }
-                strategyAsString.push(str.substring(0,str.length-1));
+                strategyAsString.push(str.substring(0, str.length - 1));
             }
             return strategyAsString;
         }
 
-        destroy(){
+        destroy() {
             this.p1Strategies = null;
             this.p2Strategies = null;
             this.strategies = null;

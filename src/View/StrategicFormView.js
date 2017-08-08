@@ -27,7 +27,7 @@ var GTE;
         StrategicFormView.prototype.generateGrid = function (cellWidth, cellStroke) {
             for (var i = 0; i < this.rows.length; i++) {
                 for (var j = 0; j < this.cols.length; j++) {
-                    this.cells.push(new GTE.SCell(this.game, j * (cellWidth - 0.5 * cellStroke), i * (cellWidth - 0.5 * cellStroke), this.group));
+                    this.cells.push(new GTE.SCell(this.game, j * (cellWidth - 0.5 * cellStroke), i * (cellWidth - 0.5 * cellStroke), this.strategicForm.payoffsMatrix[i][j].outcomes[0].toString(), this.strategicForm.payoffsMatrix[i][j].outcomes[1].toString(), this.group));
                 }
             }
         };

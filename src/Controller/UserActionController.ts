@@ -9,6 +9,7 @@
 ///<reference path="../../lib/FileSaver.d.ts"/>
 ///<reference path="../Model/StrategicForm.ts"/>
 ///<reference path="../View/StrategicFormView.ts"/>
+///<reference path="../Model/Move.ts"/>
 
 
 module GTE {
@@ -96,16 +97,35 @@ module GTE {
                 this.treeController.treeView.iSets.forEach((iSet: ISetView) => {
                     iSet.destroy();
                 });
+
+
                 let tree = this.treeParser.parse(text);
+                //temporary fix for labels
+                let labels = [];
+                tree.moves.forEach((m: Move) => {
+                    if (m.from.type === NodeType.OWNED) {
+                        labels.push(m.label);
+                    }
+                    else {
+                        labels.push(null);
+                    }
+                });
                 if (tree.nodes.length >= 3) {
                     this.treeController.tree = tree;
                     this.treeController.treeView = new TreeView(this.treeController.game, this.treeController.tree, this.treeController.treeViewProperties);
+                    //temporary fix oontinued
+                    for (let i = 0; i < this.treeController.tree.moves.length; i++) {
+                        let move = this.treeController.tree.moves[i];
+                        if (move.from.type === NodeType.OWNED) {
+                            this.treeController.tree.moves[i].label = labels[i];
+                        }
+                    }
                     this.treeController.emptySelectedNodes();
                     this.treeController.treeView.nodes.forEach(n => {
                         n.resetNodeDrawing();
                         n.resetLabelText(this.treeController.treeViewProperties.zeroSumOn);
                     });
-                    this.treeController.treeView.drawLabels();
+                    this.treeController.treeView.drawLabels(false);
                     this.treeController.attachHandlersToNodes();
                     this.treeController.treeView.iSets.forEach(iSetV => {
                         this.treeController.attachHandlersToISet(iSetV);
@@ -150,8 +170,7 @@ module GTE {
                     this.treeController.addNodeHandler(n);
                 });
             }
-            this.treeController.tree.cleanISets();
-            this.treeController.treeView.cleanISets();
+
             this.undoRedoController.saveNewTree();
         }
 
@@ -177,8 +196,6 @@ module GTE {
             deletedNodes.forEach(n => {
                 this.treeController.selectedNodes.splice(this.treeController.selectedNodes.indexOf(n), 1);
             });
-            this.treeController.tree.cleanISets();
-            this.treeController.treeView.cleanISets();
             this.undoRedoController.saveNewTree();
         }
 
@@ -410,8 +427,8 @@ module GTE {
                     let nodeV = (<NodeView>this.treeController.labelInput.currentlySelected);
                     if (nodeV.ownerLabel.alpha === 1) {
                         nodeV.node.player.label = this.treeController.labelInput.inputField.val();
-                        this.treeController.treeView.nodes.forEach(n=>{
-                            if(n.node.player) {
+                        this.treeController.treeView.nodes.forEach(n => {
+                            if (n.node.player) {
                                 n.ownerLabel.setText(n.node.player.getLabel(), true);
                             }
                         });
@@ -419,7 +436,7 @@ module GTE {
                     }
                     else {
                         nodeV.node.payoffs.loadFromString(this.treeController.labelInput.inputField.val());
-                        this.treeController.treeView.nodes.forEach(n=>{
+                        this.treeController.treeView.nodes.forEach(n => {
                             n.resetLabelText(this.treeController.treeViewProperties.zeroSumOn);
                         });
                     }
@@ -495,17 +512,17 @@ module GTE {
             try {
                 this.strategicForm = new StrategicForm(this.treeController.tree);
                 this.strategicFormView = new StrategicFormView(this.game, this.strategicForm);
-                this.strategicFormView.background.events.onDragStart.add(()=>{
+                this.strategicFormView.background.events.onDragStart.add(() => {
                     this.game.canvas.style.cursor = "move";
-                   this.treeController.selectionRectangle.active = false;
+                    this.treeController.selectionRectangle.active = false;
                 });
-                this.strategicFormView.background.events.onDragStop.add(()=>{
+                this.strategicFormView.background.events.onDragStop.add(() => {
                     this.game.canvas.style.cursor = "move";
                     this.treeController.selectionRectangle.active = true;
                 });
-                this.strategicFormView.closeIcon.events.onInputDown.add(()=>{
-                   this.strategicForm.destroy();
-                   this.strategicFormView.destroy();
+                this.strategicFormView.closeIcon.events.onInputDown.add(() => {
+                    this.strategicForm.destroy();
+                    this.strategicFormView.destroy();
                 });
             }
             catch (err) {

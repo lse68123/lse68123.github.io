@@ -3,7 +3,6 @@ var GTE;
     /**The class Payoff which is an array of numbers*/
     var Payoffs = (function () {
         function Payoffs(payoffs) {
-            this.outcomes = [];
             this.playersCount = 2;
             if (payoffs) {
                 this.outcomes = payoffs.slice(0);
@@ -35,6 +34,11 @@ var GTE;
         Payoffs.prototype.convertToZeroSum = function () {
             if (this.playersCount === 2) {
                 this.outcomes[1] = -this.outcomes[0];
+            }
+        };
+        Payoffs.prototype.add = function (payoffsToAdd) {
+            for (var i = 0; i < this.outcomes.length; i++) {
+                this.outcomes[i] += payoffsToAdd[i];
             }
         };
         Payoffs.prototype.toString = function () {

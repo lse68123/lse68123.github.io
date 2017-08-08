@@ -67,7 +67,7 @@ module GTE {
             this.centerParents();
             this.centerGroupOnScreen();
             this.drawISets();
-            this.drawLabels();
+            this.drawLabels(true);
 
             this.treeTweenManager.startTweens(this.nodes, this.moves, this.iSets, this.properties.fractionOn);
             // NOTE: All other moves will be updated from the tween manager.
@@ -219,9 +219,11 @@ module GTE {
         }
 
         /** A method which decides whether to show the labels or not*/
-        drawLabels() {
+        drawLabels(shouldResetLabels:boolean) {
             if (this.tree.checkAllNodesLabeled()) {
-                this.tree.resetLabels();
+                if (shouldResetLabels) {
+                    this.tree.resetLabels();
+                }
                 this.moves.forEach(m => {
                     m.label.alpha = 1;
                     m.updateLabel(this.properties.fractionOn, this.properties.levelHeight);

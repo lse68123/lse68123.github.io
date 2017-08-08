@@ -9,6 +9,7 @@
 ///<reference path="../../lib/FileSaver.d.ts"/>
 ///<reference path="../Model/StrategicForm.ts"/>
 ///<reference path="../View/StrategicFormView.ts"/>
+///<reference path="../Model/Move.ts"/>
 var GTE;
 (function (GTE) {
     var UserActionController = (function () {
@@ -76,15 +77,32 @@ var GTE;
                     iSet.destroy();
                 });
                 var tree = this.treeParser.parse(text);
+                //temporary fix for labels
+                var labels_1 = [];
+                tree.moves.forEach(function (m) {
+                    if (m.from.type === GTE.NodeType.OWNED) {
+                        labels_1.push(m.label);
+                    }
+                    else {
+                        labels_1.push(null);
+                    }
+                });
                 if (tree.nodes.length >= 3) {
                     this.treeController.tree = tree;
                     this.treeController.treeView = new GTE.TreeView(this.treeController.game, this.treeController.tree, this.treeController.treeViewProperties);
+                    //temporary fix oontinued
+                    for (var i = 0; i < this.treeController.tree.moves.length; i++) {
+                        var move = this.treeController.tree.moves[i];
+                        if (move.from.type === GTE.NodeType.OWNED) {
+                            this.treeController.tree.moves[i].label = labels_1[i];
+                        }
+                    }
                     this.treeController.emptySelectedNodes();
                     this.treeController.treeView.nodes.forEach(function (n) {
                         n.resetNodeDrawing();
                         n.resetLabelText(_this.treeController.treeViewProperties.zeroSumOn);
                     });
-                    this.treeController.treeView.drawLabels();
+                    this.treeController.treeView.drawLabels(false);
                     this.treeController.attachHandlersToNodes();
                     this.treeController.treeView.iSets.forEach(function (iSetV) {
                         _this.treeController.attachHandlersToISet(iSetV);
@@ -127,8 +145,6 @@ var GTE;
                     _this.treeController.addNodeHandler(n);
                 });
             }
-            this.treeController.tree.cleanISets();
-            this.treeController.treeView.cleanISets();
             this.undoRedoController.saveNewTree();
         };
         /** A method for deleting nodes (keyboard DELETE).*/
@@ -153,8 +169,6 @@ var GTE;
             deletedNodes.forEach(function (n) {
                 _this.treeController.selectedNodes.splice(_this.treeController.selectedNodes.indexOf(n), 1);
             });
-            this.treeController.tree.cleanISets();
-            this.treeController.treeView.cleanISets();
             this.undoRedoController.saveNewTree();
         };
         /**A method for assigning players to nodes (keyboard 1,2,3,4)*/

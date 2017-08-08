@@ -171,6 +171,8 @@ var GTE;
                 var child1 = this.treeView.addChildToNode(nodeV);
                 this.attachHandlersToNode(child1);
             }
+            this.tree.cleanISets();
+            this.treeView.cleanISets();
             this.resetTree();
         };
         /**A method for deleting a node - 2 step deletion.*/
@@ -192,6 +194,8 @@ var GTE;
                 this.nodesToDelete = [];
                 node.convertToDefault();
             }
+            this.tree.cleanISets();
+            this.treeView.cleanISets();
             this.resetTree();
         };
         /** A method for assigning a player to a given node.*/
@@ -205,6 +209,7 @@ var GTE;
             n.node.convertToLabeled(this.tree.findPlayerById(playerID));
             // If the node is in an iset, change the owner of the iSet to the new player
             if (n.node.iSet && n.node.iSet.nodes.length > 1) {
+                n.node.iSet.player = this.tree.players[playerID];
                 var iSetView = this.treeView.findISetView(n.node.iSet);
                 iSetView.nodes.forEach(function (nv) {
                     nv.resetNodeDrawing();
@@ -232,7 +237,7 @@ var GTE;
             if (playerID > this.tree.players.length - 1) {
                 this.tree.addPlayer(new GTE.Player(playerID, playerID.toString(), GTE.PLAYER_COLORS[playerID - 1]));
                 $("#player-number").html((this.tree.players.length - 1).toString());
-                this.treeView.drawLabels();
+                this.treeView.drawLabels(true);
             }
         };
         /**Creates an iSet with the corresponding checks*/

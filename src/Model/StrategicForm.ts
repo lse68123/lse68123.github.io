@@ -8,7 +8,6 @@ module GTE {
     export class StrategicForm {
         tree: Tree;
 
-        strategies: Array<Array<string>>;
         p1Strategies: Array<Array<Move>>;
         p2Strategies: Array<Array<Move>>;
         payoffsMatrix: Array<Array<Payoffs>>;
@@ -22,9 +21,7 @@ module GTE {
 
         constructor(tree: Tree) {
             this.tree = tree;
-            this.strategies = [];
-            this.strategies[0] = [];
-            this.strategies[1] = [];
+
             this.generateStrategicForm();
         }
 
@@ -33,7 +30,7 @@ module GTE {
             this.checkStrategicFormPossible();
 
             // The order of information sets is breadth-first. If at some point we wish to change this - swap with dfs.
-            let nodes = this.tree.DFSOnTree();
+            let nodes = this.tree.BFSOnTree();
             let p1InfoSets = [];
             let p2InfoSets = [];
 
@@ -75,10 +72,10 @@ module GTE {
         private recurseStrategies(infoSets, index, strategy) {
             // If we have reached the last slot for the combinations, save it and go back in the recursion.
             if (index === infoSets.length) {
-                if (infoSets[0].player === this.tree.players[1]) {
+                if (infoSets[0] && infoSets[0].player === this.tree.players[1]) {
                     this.p1Strategies.push(strategy.slice(0));
                 }
-                else if (infoSets[0].player === this.tree.players[2]) {
+                else if (infoSets[0] && infoSets[0].player === this.tree.players[2]) {
                     this.p2Strategies.push(strategy.slice(0));
                 }
                 return;
@@ -147,7 +144,6 @@ module GTE {
         }
 
         // A helper method for the recursion
-        // noinspection JSMethodCanBeStatic
         private findFirstNonNullIndex(strategy, index) {
             for (let i = index - 1; i >= 0; i--) {
                 if (strategy[i]) {
@@ -173,6 +169,9 @@ module GTE {
 
         private checkTwoNodesReachable(from: Node, to: Node) {
             // current is the node of the move we start from
+            if(from===to){
+                return true;
+            }
             let current: Node = from;
             while (current.parent) {
                 if (current.parent === to) {
@@ -186,6 +185,12 @@ module GTE {
         generatePayoffs() {
             let rows = this.p1Strategies.length;
             let cols = this.p2Strategies.length;
+            if(rows===0){
+                rows++;
+            }
+            if(cols===0){
+                cols++;
+            }
             this.payoffsMatrix = [];
             for (let i = 0; i < rows; i++) {
                 this.payoffsMatrix[i] = [];
@@ -203,33 +208,56 @@ module GTE {
                 this.getReachableVectors(this.reachableRows, this.p1Strategies, this.movesToReachLeafP1);
                 this.getReachableVectors(this.reachableCols, this.p2Strategies, this.movesToReachLeafP2);
 
-                let payoffsToAdd = leaf.payoffs.outcomes;
+                let payoffsToAdd = leaf.payoffs.outcomes.slice(0);
                 for (let i = 0; i < payoffsToAdd.length; i++) {
-                    payoffsToAdd[i] = Math.round(payoffsToAdd[i]*this.probabilityPerPath);
+                    payoffsToAdd[i] = payoffsToAdd[i] * this.probabilityPerPath;
                 }
 
                 // this.currentPathToString(leaf);
-
-                for (let i = 0; i < this.reachableRows.length; i++) {
-                    for (let j = 0; j < this.reachableCols.length; j++) {
-                        this.payoffsMatrix[this.reachableRows[i]][this.reachableCols[j]].add(payoffsToAdd);
+                let rowsLength = this.reachableRows.length;
+                let colsLength = this.reachableCols.length;
+                if(rowsLength === 0){
+                    rowsLength++;
+                }
+                if(colsLength === 0){
+                    colsLength++;
+                }
+                for (let i = 0; i < rowsLength; i++) {
+                    for (let j = 0; j < colsLength; j++) {
+                        if(this.reachableRows.length!==0 && this.reachableCols.length!==0) {
+                            this.payoffsMatrix[this.reachableRows[i]][this.reachableCols[j]].add(payoffsToAdd);
+                        }
+                        else if(this.reachableRows.length!==0 && this.reachableCols.length===0){
+                            this.payoffsMatrix[this.reachableRows[i]][j].add(payoffsToAdd);
+                        }
+                        else if(this.reachableRows.length===0 && this.reachableCols.length!==0){
+                            this.payoffsMatrix[i][this.reachableCols[j]].add(payoffsToAdd);
+                        }
+                        else{
+                            this.payoffsMatrix[i][j].add(payoffsToAdd);
+                        }
                     }
                 }
-            },this);
+            }, this);
+            for (let i = 0; i < this.payoffsMatrix.length; i++) {
+                for (let j = 0; j < this.payoffsMatrix[0].length; j++) {
+                    this.payoffsMatrix[i][j].round();
+                }
+            }
         }
 
         // For debugging purposes
-        private currentPathToString(leaf:Node){
-            let result = ""+leaf.payoffs.outcomes + "-> ";
-            this.movesToReachLeafP1.forEach(m=>{
-               result+=m.label+" "
+        private currentPathToString(leaf: Node) {
+            let result = "" + leaf.payoffs.outcomes + "-> ";
+            this.movesToReachLeafP1.forEach(m => {
+                result += m.label + " "
             });
-            result +="|| ";
-            this.movesToReachLeafP2.forEach(m=>{
-                result+=m.label+" "
+            result += "|| ";
+            this.movesToReachLeafP2.forEach(m => {
+                result += m.label + " ";
             });
-            result+="\nReachable Rows: " +this.reachableRows.join(",");
-            result+="\nReachable Cols: " +this.reachableCols.join(",");
+            result += "\nReachable Rows: " + this.reachableRows.join(",");
+            result += "\nReachable Cols: " + this.reachableCols.join(",");
             console.log(result);
         }
 
@@ -254,26 +282,46 @@ module GTE {
             }
         }
 
-        private getReachableVectors(vector:Array<number>, allStrategies:Array<Array<Move>>, strategiesOnPath:Array<Move>){
+        private getReachableVectors(vector: Array<number>, allStrategies: Array<Array<Move>>, strategiesOnPath: Array<Move>) {
             for (let i = 0; i < allStrategies.length; i++) {
                 let currentStrategy = allStrategies[i];
                 let containsAllOnPath = true;
                 for (let j = 0; j < strategiesOnPath.length; j++) {
                     let moveOnPath = strategiesOnPath[j];
-                    if(currentStrategy.indexOf(moveOnPath) === -1){
+                    if (this.checkUnreachableMove(currentStrategy, moveOnPath)) {
                         containsAllOnPath = false;
                         break;
                     }
                 }
-                if(containsAllOnPath){
+                if (containsAllOnPath) {
                     vector.push(i);
                 }
             }
 
-            if(vector.length===0){
+            if (vector.length === 0) {
                 for (let i = 0; i < allStrategies.length; i++) {
                     vector.push(i);
                 }
+            }
+        }
+
+        //Checks if reachable in information sets also
+        private checkUnreachableMove(strategy: Array<Move>, move: Move) {
+            if (strategy.indexOf(move) !== -1) {
+                return false;
+            }
+            else if (move.from.iSet === null) {
+                return true
+            }
+            else {
+                let moveIndex = move.from.childrenMoves.indexOf(move);
+                let iSetNodes = move.from.iSet.nodes;
+                for (let i = 0; i < iSetNodes.length; i++) {
+                    if (strategy.indexOf(iSetNodes[i].childrenMoves[moveIndex]) !== -1) {
+                        return false;
+                    }
+                }
+                return true;
             }
         }
 
@@ -288,17 +336,20 @@ module GTE {
         }
 
 
-        strategyToString(strategies) {
+        strategyToString(strategies:Array<Array<Move>>) {
+            if(strategies.length===0){
+                return [" "];
+            }
             let strategyAsString = [];
             for (let i = 0; i < strategies.length; i++) {
                 let str = "";
                 for (let j = 0; j < strategies[i].length; j++) {
                     let current = strategies[i][j];
                     if (current) {
-                        str += current.label + ",";
+                        str += current.label + STRATEGIC_FORM_DELIMITER;
                     }
                     else {
-                        str += "*,";
+                        str += "*" + STRATEGIC_FORM_DELIMITER;
                     }
 
                 }
@@ -310,7 +361,6 @@ module GTE {
         destroy() {
             this.p1Strategies = null;
             this.p2Strategies = null;
-            this.strategies = null;
         }
     }
 }

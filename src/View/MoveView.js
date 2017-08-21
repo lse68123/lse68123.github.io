@@ -32,7 +32,6 @@ var GTE;
             _this.label.align = "center";
             _this.label.fontWeight = 200;
             _this.label.inputEnabled = true;
-            _this.label.events.onInputDown.dispatch(_this);
             _this.game.add.existing(_this);
             _this.game.world.sendToBack(_this);
             return _this;

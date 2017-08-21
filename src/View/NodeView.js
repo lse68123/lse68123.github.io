@@ -35,7 +35,6 @@ var GTE;
             }
             _this.labelHorizontalOffset = 1;
             _this.createSprites();
-            _this.attachSignals();
             _this.createLabels();
             _this.input.priorityID = 1;
             _this.ownerLabel.input.priorityID = 199;
@@ -63,14 +62,6 @@ var GTE;
             this.previewSelected.alpha = 0;
             this.previewSelected.anchor.set(0.5, 0.5);
         };
-        /** A method which attaches signals when a specific input is triggered over a node
-         * The signal itself returns a reference to the triggered node and the specific action.
-         * The TreeController class will listen for these signals and act accordingly.*/
-        NodeView.prototype.attachSignals = function () {
-            this.events.onInputOver.dispatch();
-            this.events.onInputOut.dispatch();
-            this.events.onInputDown.dispatch();
-        };
         /** A method which creates the label for the Node*/
         NodeView.prototype.createLabels = function () {
             this.ownerLabel = this.game.add.text(this.x + this.labelHorizontalOffset * this.circle.width, this.y - this.circle.width, "", null);
@@ -86,7 +77,6 @@ var GTE;
             this.ownerLabel.anchor.set(0.5, 0.5);
             this.ownerLabel.inputEnabled = true;
             // this.ownerLabel.fontWeight = 100;
-            this.ownerLabel.events.onInputDown.dispatch(this);
             this.payoffsLabel = this.game.add.text(this.x, this.y + this.width, "", null);
             this.payoffsLabel.position = this.position;
             this.payoffsLabel.fontSize = this.circle.width * GTE.PAYOFF_SIZE;
@@ -95,7 +85,6 @@ var GTE;
             this.payoffsLabel.inputEnabled = true;
             this.payoffsLabel.lineSpacing = -10;
             this.payoffsLabel.align = "right";
-            this.payoffsLabel.events.onInputDown.dispatch(this, "payoff");
         };
         /** A method which sets the position of the node to a specific x and y coordinate*/
         NodeView.prototype.setPosition = function (x, y) {

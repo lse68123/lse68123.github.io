@@ -9,9 +9,6 @@ var GTE;
     var StrategicForm = (function () {
         function StrategicForm(tree) {
             this.tree = tree;
-            this.strategies = [];
-            this.strategies[0] = [];
-            this.strategies[1] = [];
             this.generateStrategicForm();
         }
         /**Generates the strategic form, which is stored in two arrays of strategies for P1 and P2*/
@@ -19,7 +16,7 @@ var GTE;
             var _this = this;
             this.checkStrategicFormPossible();
             // The order of information sets is breadth-first. If at some point we wish to change this - swap with dfs.
-            var nodes = this.tree.DFSOnTree();
+            var nodes = this.tree.BFSOnTree();
             var p1InfoSets = [];
             var p2InfoSets = [];
             //Get all P1 and P2 information sets and singletons separated from the DFS order.
@@ -57,10 +54,10 @@ var GTE;
         StrategicForm.prototype.recurseStrategies = function (infoSets, index, strategy) {
             // If we have reached the last slot for the combinations, save it and go back in the recursion.
             if (index === infoSets.length) {
-                if (infoSets[0].player === this.tree.players[1]) {
+                if (infoSets[0] && infoSets[0].player === this.tree.players[1]) {
                     this.p1Strategies.push(strategy.slice(0));
                 }
-                else if (infoSets[0].player === this.tree.players[2]) {
+                else if (infoSets[0] && infoSets[0].player === this.tree.players[2]) {
                     this.p2Strategies.push(strategy.slice(0));
                 }
                 return;
@@ -120,7 +117,6 @@ var GTE;
             return true;
         };
         // A helper method for the recursion
-        // noinspection JSMethodCanBeStatic
         StrategicForm.prototype.findFirstNonNullIndex = function (strategy, index) {
             for (var i = index - 1; i >= 0; i--) {
                 if (strategy[i]) {
@@ -144,6 +140,9 @@ var GTE;
         };
         StrategicForm.prototype.checkTwoNodesReachable = function (from, to) {
             // current is the node of the move we start from
+            if (from === to) {
+                return true;
+            }
             var current = from;
             while (current.parent) {
                 if (current.parent === to) {
@@ -157,6 +156,12 @@ var GTE;
             var _this = this;
             var rows = this.p1Strategies.length;
             var cols = this.p2Strategies.length;
+            if (rows === 0) {
+                rows++;
+            }
+            if (cols === 0) {
+                cols++;
+            }
             this.payoffsMatrix = [];
             for (var i = 0; i < rows; i++) {
                 this.payoffsMatrix[i] = [];
@@ -172,17 +177,41 @@ var GTE;
                 // Vector - either a row or a column
                 _this.getReachableVectors(_this.reachableRows, _this.p1Strategies, _this.movesToReachLeafP1);
                 _this.getReachableVectors(_this.reachableCols, _this.p2Strategies, _this.movesToReachLeafP2);
-                var payoffsToAdd = leaf.payoffs.outcomes;
+                var payoffsToAdd = leaf.payoffs.outcomes.slice(0);
                 for (var i = 0; i < payoffsToAdd.length; i++) {
-                    payoffsToAdd[i] = Math.round(payoffsToAdd[i] * _this.probabilityPerPath);
+                    payoffsToAdd[i] = payoffsToAdd[i] * _this.probabilityPerPath;
                 }
                 // this.currentPathToString(leaf);
-                for (var i = 0; i < _this.reachableRows.length; i++) {
-                    for (var j = 0; j < _this.reachableCols.length; j++) {
-                        _this.payoffsMatrix[_this.reachableRows[i]][_this.reachableCols[j]].add(payoffsToAdd);
+                var rowsLength = _this.reachableRows.length;
+                var colsLength = _this.reachableCols.length;
+                if (rowsLength === 0) {
+                    rowsLength++;
+                }
+                if (colsLength === 0) {
+                    colsLength++;
+                }
+                for (var i = 0; i < rowsLength; i++) {
+                    for (var j = 0; j < colsLength; j++) {
+                        if (_this.reachableRows.length !== 0 && _this.reachableCols.length !== 0) {
+                            _this.payoffsMatrix[_this.reachableRows[i]][_this.reachableCols[j]].add(payoffsToAdd);
+                        }
+                        else if (_this.reachableRows.length !== 0 && _this.reachableCols.length === 0) {
+                            _this.payoffsMatrix[_this.reachableRows[i]][j].add(payoffsToAdd);
+                        }
+                        else if (_this.reachableRows.length === 0 && _this.reachableCols.length !== 0) {
+                            _this.payoffsMatrix[i][_this.reachableCols[j]].add(payoffsToAdd);
+                        }
+                        else {
+                            _this.payoffsMatrix[i][j].add(payoffsToAdd);
+                        }
                     }
                 }
             }, this);
+            for (var i = 0; i < this.payoffsMatrix.length; i++) {
+                for (var j = 0; j < this.payoffsMatrix[0].length; j++) {
+                    this.payoffsMatrix[i][j].round();
+                }
+            }
         };
         // For debugging purposes
         StrategicForm.prototype.currentPathToString = function (leaf) {
@@ -224,7 +253,7 @@ var GTE;
                 var containsAllOnPath = true;
                 for (var j = 0; j < strategiesOnPath.length; j++) {
                     var moveOnPath = strategiesOnPath[j];
-                    if (currentStrategy.indexOf(moveOnPath) === -1) {
+                    if (this.checkUnreachableMove(currentStrategy, moveOnPath)) {
                         containsAllOnPath = false;
                         break;
                     }
@@ -239,6 +268,25 @@ var GTE;
                 }
             }
         };
+        //Checks if reachable in information sets also
+        StrategicForm.prototype.checkUnreachableMove = function (strategy, move) {
+            if (strategy.indexOf(move) !== -1) {
+                return false;
+            }
+            else if (move.from.iSet === null) {
+                return true;
+            }
+            else {
+                var moveIndex = move.from.childrenMoves.indexOf(move);
+                var iSetNodes = move.from.iSet.nodes;
+                for (var i = 0; i < iSetNodes.length; i++) {
+                    if (strategy.indexOf(iSetNodes[i].childrenMoves[moveIndex]) !== -1) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        };
         StrategicForm.prototype.checkStrategicFormPossible = function () {
             if (this.tree.players.length !== 3) {
                 throw new Error(GTE.STRATEGIC_PLAYERS_ERROR_TEXT);
@@ -249,16 +297,19 @@ var GTE;
             this.tree.perfectRecallCheck();
         };
         StrategicForm.prototype.strategyToString = function (strategies) {
+            if (strategies.length === 0) {
+                return [" "];
+            }
             var strategyAsString = [];
             for (var i = 0; i < strategies.length; i++) {
                 var str = "";
                 for (var j = 0; j < strategies[i].length; j++) {
                     var current = strategies[i][j];
                     if (current) {
-                        str += current.label + ",";
+                        str += current.label + GTE.STRATEGIC_FORM_DELIMITER;
                     }
                     else {
-                        str += "*,";
+                        str += "*" + GTE.STRATEGIC_FORM_DELIMITER;
                     }
                 }
                 strategyAsString.push(str.substring(0, str.length - 1));
@@ -268,7 +319,6 @@ var GTE;
         StrategicForm.prototype.destroy = function () {
             this.p1Strategies = null;
             this.p2Strategies = null;
-            this.strategies = null;
         };
         return StrategicForm;
     }());

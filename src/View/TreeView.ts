@@ -127,12 +127,12 @@ module GTE {
             let child = new Node();
             this.tree.addChildToNode(node, child);
 
-            let childV = new NodeView(this.game, child);
+            let childV = new NodeView(this.game, child, nodeV.x, nodeV.y);
             let move = new MoveView(this.game, nodeV, childV);
 
             this.nodes.push(childV);
             this.moves.push(move);
-            this.drawTree();
+            // this.drawTree();
             return childV;
         }
 
@@ -219,7 +219,7 @@ module GTE {
         }
 
         /** A method which decides whether to show the labels or not*/
-        drawLabels(shouldResetLabels:boolean) {
+        drawLabels(shouldResetLabels: boolean) {
             if (this.tree.checkAllNodesLabeled()) {
                 if (shouldResetLabels) {
                     this.tree.resetLabels();

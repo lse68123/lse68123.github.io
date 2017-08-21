@@ -30,7 +30,6 @@ var GTE;
             _this.input.priorityID = 100;
             _this.input.pixelPerfectClick = true;
             _this.input.pixelPerfectOver = true;
-            _this.events.onInputOver.dispatch(_this);
             return _this;
         }
         ISetView.prototype.removeNode = function (nodeV) {

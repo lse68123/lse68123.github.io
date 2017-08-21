@@ -18,13 +18,13 @@ module GTE{
             }
         }
 
-        loadFromString(payoffs:string){
+        saveFromString(payoffs:string){
             let payoffsAsStringArray = payoffs.split(" ");
             for (let i = 0; i < payoffsAsStringArray.length; i++) {
                 if(i>3){
                     return;
                 }
-                let currentPayoff = parseInt(payoffsAsStringArray[i]);
+                let currentPayoff = parseFloat(payoffsAsStringArray[i]);
                 if(currentPayoff){
                     this.outcomes[i] = currentPayoff;
                 }
@@ -50,6 +50,12 @@ module GTE{
         add(payoffsToAdd:Array<number>){
             for (let i = 0; i < this.outcomes.length; i++) {
                 this.outcomes[i]+=payoffsToAdd[i];
+            }
+        }
+
+        round(){
+            for (let i = 0; i < this.outcomes.length; i++) {
+                this.outcomes[i] = parseFloat(math.format(math.round(this.outcomes[i],2)));
             }
         }
 

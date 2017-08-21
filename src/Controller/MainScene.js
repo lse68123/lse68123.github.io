@@ -29,11 +29,8 @@ var GTE;
             this.keyboardController = new GTE.KeyboardController(this.game, this.userActionController);
             this.hoverManager = new GTE.HoverMenuController(this.game, this.userActionController);
             this.topMenu = new GTE.TopMenu(this.userActionController);
-            // this.game.input.onDown.add(()=>{
-            //     this.labelInput.show(this.game.input.activePointer.x,this.game.input.activePointer.y);
-            // });
             // The line below is used for fps testing purposes
-            this.game.time.advancedTiming = true;
+            // this.game.time.advancedTiming = true;
         };
         /** The update method is built-into the engine for every state. It executes at most 60 times a second*/
         MainScene.prototype.update = function () {

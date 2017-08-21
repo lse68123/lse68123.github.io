@@ -17,8 +17,11 @@ module GTE {
 
         startTweens(nodes: Array<NodeView>, moves: Array<MoveView>, iSets: Array<ISetView>, fractionOn:boolean) {
             let animationTimer = TREE_TWEEN_DURATION;
+            moves.forEach((m:MoveView)=>{
+               m.label.alpha=0;
+            });
 
-            if(!this.oldCoordinates[1].x){
+            if(!this.oldCoordinates[1] || !this.oldCoordinates[1].x){
                 animationTimer = 1;
             }
             let minLength = this.oldCoordinates.length < nodes.length ? this.oldCoordinates.length : nodes.length;
@@ -29,7 +32,7 @@ module GTE {
 
                 //Add tween to all nodes and update moves and node labels
                 if (newNode && clonedCoords && this.oldCoordinates.length > 3 && clonedCoords.x !== 0 && clonedCoords.y != 0) {
-                    this.game.add.tween(newNode).from({x: clonedCoords.x,y: clonedCoords.y}, animationTimer, Phaser.Easing.Cubic.Out, true)
+                    this.game.add.tween(newNode).from({x: clonedCoords.x,y: clonedCoords.y}, animationTimer, Phaser.Easing.Quartic.Out, true)
                         .onUpdateCallback(() => {
                         nodes.forEach(n => {
                             n.resetNodeDrawing();
@@ -39,11 +42,6 @@ module GTE {
                         });
                     });
                 }
-                // Add tween to iSets in a clever way
-                iSets.forEach(iSet => {
-                    iSet.alpha = 0;
-                    this.game.add.tween(iSet).to({alpha:0.15}, animationTimer, Phaser.Easing.Cubic.Out, true);
-                });
             }
             this.game.time.events.add(animationTimer+1, () => {
                 nodes.forEach(n => {
@@ -55,6 +53,7 @@ module GTE {
                 moves.forEach(m => {
                     m.updateMovePosition();
                     m.updateLabel(this.properties.fractionOn,this.properties.levelHeight);
+                    this.game.add.tween(m.label).to({alpha:1},200, Phaser.Easing.Default,true);
                 });
             });
         }

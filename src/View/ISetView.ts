@@ -27,7 +27,6 @@ module GTE {
             this.input.priorityID = 100;
             this.input.pixelPerfectClick = true;
             this.input.pixelPerfectOver = true;
-            this.events.onInputOver.dispatch(this);
         }
 
         removeNode(nodeV: NodeView) {

@@ -28,12 +28,9 @@ module GTE {
             this.keyboardController = new KeyboardController(this.game, this.userActionController);
             this.hoverManager = new HoverMenuController(this.game, this.userActionController);
             this.topMenu = new TopMenu(this.userActionController);
-            // this.game.input.onDown.add(()=>{
-            //     this.labelInput.show(this.game.input.activePointer.x,this.game.input.activePointer.y);
-            // });
 
            // The line below is used for fps testing purposes
-           this.game.time.advancedTiming = true;
+           // this.game.time.advancedTiming = true;
 
         }
 

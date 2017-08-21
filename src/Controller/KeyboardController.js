@@ -7,7 +7,6 @@ var GTE;
 (function (GTE) {
     /** A class for controlling the input of the application. If there is a confusion over the functionality of each button
      * you can check the attachHandlersToKeysMethod*/
-    //TODO: Fix bug with ctrl+s
     var KeyboardController = (function () {
         function KeyboardController(game, userActionController) {
             this.game = game;
@@ -171,6 +170,20 @@ var GTE;
                     _this.userActionController.saveTreeToFile();
                 }
             });
+            // Arrow Keys Moving nodes
+            //----------------------------------------------------------------------------------------------------------
+            this.upKey.onUp.add(function () {
+                _this.userActionController.undoRedoController.saveNewTree(true);
+            });
+            this.downKey.onUp.add(function () {
+                _this.userActionController.undoRedoController.saveNewTree(true);
+            });
+            this.leftKey.onUp.add(function () {
+                _this.userActionController.undoRedoController.saveNewTree(true);
+            });
+            this.rightKey.onUp.add(function () {
+                _this.userActionController.undoRedoController.saveNewTree(true);
+            });
             this.upKey.onDown.add(function () {
                 if (!_this.userActionController.treeController.labelInput.active) {
                     var verticalDistance = _this.userActionController.treeController.treeViewProperties.levelHeight * GTE.NODES_VERTICAL_STEP_POSITIONING;
@@ -229,6 +242,7 @@ var GTE;
             this.rightKey.onHoldContext = this;
             this.testButton.onDown.add(function () {
             });
+            //----------------------------------------------------------------------------------------------------------
         };
         return KeyboardController;
     }());

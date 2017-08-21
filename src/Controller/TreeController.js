@@ -171,9 +171,6 @@ var GTE;
                 var child1 = this.treeView.addChildToNode(nodeV);
                 this.attachHandlersToNode(child1);
             }
-            this.tree.cleanISets();
-            this.treeView.cleanISets();
-            this.resetTree();
         };
         /**A method for deleting a node - 2 step deletion.*/
         TreeController.prototype.deleteNodeHandler = function (node) {
@@ -194,9 +191,6 @@ var GTE;
                 this.nodesToDelete = [];
                 node.convertToDefault();
             }
-            this.tree.cleanISets();
-            this.treeView.cleanISets();
-            this.resetTree();
         };
         /** A method for assigning a player to a given node.*/
         TreeController.prototype.assignPlayerToNode = function (playerID, n) {
@@ -219,14 +213,14 @@ var GTE;
             }
             n.resetNodeDrawing();
             n.resetLabelText(this.treeViewProperties.zeroSumOn);
-            this.resetTree();
+            this.resetTree(true);
         };
         /**A method for assigning chance player to a given node*/
         TreeController.prototype.assignChancePlayerToNode = function (n) {
             n.node.convertToChance(this.tree.players[0]);
             n.resetNodeDrawing();
             n.resetLabelText(this.treeViewProperties.zeroSumOn);
-            this.resetTree();
+            this.resetTree(true);
         };
         /**A method for adding a new player if there isn't one created already*/
         TreeController.prototype.addPlayer = function (playerID) {
@@ -237,6 +231,7 @@ var GTE;
             if (playerID > this.tree.players.length - 1) {
                 this.tree.addPlayer(new GTE.Player(playerID, playerID.toString(), GTE.PLAYER_COLORS[playerID - 1]));
                 $("#player-number").html((this.tree.players.length - 1).toString());
+                $("#zero-sum-wrapper").css("opacity", 0.3);
                 this.treeView.drawLabels(true);
             }
         };
@@ -277,13 +272,13 @@ var GTE;
             var iSet = this.tree.addISet(player, iSetNodes);
             var iSetV = this.treeView.addISetView(iSet);
             this.attachHandlersToISet(iSetV);
-            this.resetTree();
+            this.resetTree(true);
         };
         /**A method for deleting an iSet*/
         TreeController.prototype.removeISetHandler = function (iSet) {
             this.tree.removeISet(iSet);
             this.treeView.removeISetView(this.treeView.findISetView(iSet));
-            this.resetTree();
+            this.resetTree(true);
         };
         /**A method which removes all isets from the selected nodes*/
         TreeController.prototype.removeISetsByNodesHandler = function () {
@@ -333,7 +328,7 @@ var GTE;
                     this.createISet(rightNodes_1);
                 }
             }
-            this.resetTree();
+            this.resetTree(true);
         };
         /**A method for assigning random payoffs to nodes*/
         TreeController.prototype.randomPayoffs = function () {
@@ -344,9 +339,15 @@ var GTE;
             this.resetTree();
         };
         /**A method for resetting the tree after each action on the tree*/
-        TreeController.prototype.resetTree = function () {
+        TreeController.prototype.resetTree = function (soft) {
             if (this.tree.nodes.length > 1) {
-                this.treeView.drawTree();
+                if (!soft) {
+                    this.treeView.drawTree();
+                }
+                else {
+                    this.treeView.drawISets();
+                    this.treeView.drawLabels(true);
+                }
             }
         };
         /**Get all children of a given node*/

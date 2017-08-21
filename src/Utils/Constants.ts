@@ -59,6 +59,9 @@ module GTE {
     export const MOVES_TEXT_SIZE = 0.25;
     export const STRATEGIC_PLAYERS_ERROR_TEXT = "Strategic form only available for 2 players!";
     export const STRATEGIC_NOT_LABELED_ERROR_TEXT = "Not all nodes are owned or chance!";
+    export const STRATEGIC_FORM_DELIMITER = " ";
+
+    export const YOUTUBE_VIDEO_URL = "https://www.youtube.com/embed/kurQfjPXfic";
 
 
 

@@ -11,13 +11,13 @@ var GTE;
                 this.outcomes = [0, 0, 0, 0];
             }
         }
-        Payoffs.prototype.loadFromString = function (payoffs) {
+        Payoffs.prototype.saveFromString = function (payoffs) {
             var payoffsAsStringArray = payoffs.split(" ");
             for (var i = 0; i < payoffsAsStringArray.length; i++) {
                 if (i > 3) {
                     return;
                 }
-                var currentPayoff = parseInt(payoffsAsStringArray[i]);
+                var currentPayoff = parseFloat(payoffsAsStringArray[i]);
                 if (currentPayoff) {
                     this.outcomes[i] = currentPayoff;
                 }
@@ -39,6 +39,11 @@ var GTE;
         Payoffs.prototype.add = function (payoffsToAdd) {
             for (var i = 0; i < this.outcomes.length; i++) {
                 this.outcomes[i] += payoffsToAdd[i];
+            }
+        };
+        Payoffs.prototype.round = function () {
+            for (var i = 0; i < this.outcomes.length; i++) {
+                this.outcomes[i] = parseFloat(math.format(math.round(this.outcomes[i], 2)));
             }
         };
         Payoffs.prototype.toString = function () {

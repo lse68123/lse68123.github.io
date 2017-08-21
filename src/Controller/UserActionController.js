@@ -49,6 +49,7 @@ var GTE;
         UserActionController.prototype.createNewTree = function () {
             this.deleteNodeHandler(this.treeController.treeView.nodes[0]);
             this.addNodesHandler(this.treeController.treeView.nodes[0]);
+            this.destroyStrategicForm();
         };
         /**Saves a tree to a txt file*/
         UserActionController.prototype.saveTreeToFile = function () {
@@ -113,6 +114,7 @@ var GTE;
                 this.treeController.errorPopUp.show("Error in reading file. ");
                 this.treeController.createInitialTree();
             }
+            this.destroyStrategicForm();
         };
         /**A method which saves the tree to a png file*/
         UserActionController.prototype.saveTreeToImage = function () {
@@ -145,6 +147,10 @@ var GTE;
                     _this.treeController.addNodeHandler(n);
                 });
             }
+            this.treeController.tree.cleanISets();
+            this.treeController.treeView.cleanISets();
+            this.treeController.resetTree();
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         };
         /** A method for deleting nodes (keyboard DELETE).*/
@@ -169,6 +175,10 @@ var GTE;
             deletedNodes.forEach(function (n) {
                 _this.treeController.selectedNodes.splice(_this.treeController.selectedNodes.indexOf(n), 1);
             });
+            this.treeController.tree.cleanISets();
+            this.treeController.treeView.cleanISets();
+            this.treeController.resetTree();
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         };
         /**A method for assigning players to nodes (keyboard 1,2,3,4)*/
@@ -206,7 +216,8 @@ var GTE;
                 n.resetNodeDrawing();
                 n.resetLabelText(_this.treeController.treeViewProperties.zeroSumOn);
             });
-            this.treeController.treeView.drawTree();
+            this.treeController.resetTree(true);
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         };
         /**A method for creating an iSet (keyboard I)*/
@@ -214,11 +225,13 @@ var GTE;
             if (this.treeController.selectedNodes.length > 1) {
                 this.treeController.createISet(this.treeController.selectedNodes);
             }
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         };
         /**Remove iSetHandler*/
         UserActionController.prototype.removeISetHandler = function (iSet) {
             this.treeController.removeISetHandler(iSet);
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         };
         /**Removes and iSet by a given list of nodes*/
@@ -229,26 +242,30 @@ var GTE;
             else {
                 this.treeController.removeISetsByNodesHandler();
             }
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         };
         /**A method for assigning undo/redo functionality (keyboard ctrl/shift + Z)*/
         UserActionController.prototype.undoRedoHandler = function (undo) {
             this.undoRedoController.changeTreeInController(undo);
             $("#player-number").html((this.treeController.tree.players.length - 1).toString());
+            this.destroyStrategicForm();
         };
         /**A method for assigning random payoffs*/
         UserActionController.prototype.randomPayoffsHandler = function () {
             this.treeController.randomPayoffs();
+            this.destroyStrategicForm();
         };
         /**A method which toggles the zero sum on or off*/
         UserActionController.prototype.toggleZeroSum = function () {
             this.treeController.treeViewProperties.zeroSumOn = !this.treeController.treeViewProperties.zeroSumOn;
-            this.treeController.treeView.drawTree();
+            this.destroyStrategicForm();
+            this.treeController.resetTree(true);
         };
         /**A method which toggles the fractional or decimal view of chance moves*/
         UserActionController.prototype.toggleFractionDecimal = function () {
             this.treeController.treeViewProperties.fractionOn = !this.treeController.treeViewProperties.fractionOn;
-            this.treeController.treeView.drawTree();
+            this.treeController.resetTree(true);
         };
         /**Starts the "Cut" state for an Information set*/
         UserActionController.prototype.initiateCutSpriteHandler = function (iSetV) {
@@ -274,6 +291,7 @@ var GTE;
                 _this.game.input.keyboard.enabled = true;
                 _this.cutSprite.alpha = 0;
                 _this.treeController.cutInformationSet(_this.cutInformationSet, _this.cutSprite.x, _this.cutSprite.y);
+                _this.treeController.resetTree(true);
                 _this.undoRedoController.saveNewTree();
             }, this);
         };
@@ -382,17 +400,25 @@ var GTE;
                         });
                     }
                     else {
-                        nodeV.node.payoffs.loadFromString(this.treeController.labelInput.inputField.val());
+                        nodeV.node.payoffs.saveFromString(this.treeController.labelInput.inputField.val());
                         this.treeController.treeView.nodes.forEach(function (n) {
                             n.resetLabelText(_this.treeController.treeViewProperties.zeroSumOn);
                         });
+                        if (this.treeController.tree.players.length === 3) {
+                            try {
+                                this.createStrategicForm();
+                            }
+                            catch (err) {
+                                //Handle error
+                            }
+                        }
                     }
                 }
                 this.activateLabelField(true);
                 this.undoRedoController.saveNewTree();
             }
         };
-        /**Hides then input*/
+        /**Hides the input*/
         UserActionController.prototype.hideInputLabel = function () {
             if (this.treeController.labelInput.active) {
                 this.treeController.labelInput.hide();
@@ -446,13 +472,9 @@ var GTE;
         };
         UserActionController.prototype.createStrategicForm = function () {
             var _this = this;
-            if (this.strategicForm) {
-                this.strategicForm.destroy();
-            }
-            if (this.strategicFormView) {
-                this.strategicFormView.destroy();
-            }
-            try {
+            this.destroyStrategicForm();
+            if (this.treeController.tree.checkAllNodesLabeled()) {
+                // try {
                 this.strategicForm = new GTE.StrategicForm(this.treeController.tree);
                 this.strategicFormView = new GTE.StrategicFormView(this.game, this.strategicForm);
                 this.strategicFormView.background.events.onDragStart.add(function () {
@@ -467,9 +489,18 @@ var GTE;
                     _this.strategicForm.destroy();
                     _this.strategicFormView.destroy();
                 });
+                // }
+                // catch (err) {
+                //     this.treeController.errorPopUp.show(err.message);
+                // }
             }
-            catch (err) {
-                this.treeController.errorPopUp.show(err.message);
+        };
+        UserActionController.prototype.destroyStrategicForm = function () {
+            if (this.strategicForm) {
+                this.strategicForm.destroy();
+            }
+            if (this.strategicFormView) {
+                this.strategicFormView.destroy();
             }
         };
         return UserActionController;

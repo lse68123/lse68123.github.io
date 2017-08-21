@@ -24,6 +24,7 @@ module GTE {
         zoomOutIcon: Phaser.Sprite;
         closeIcon: Phaser.Sprite;
 
+
         constructor(game: Phaser.Game, strategicForm: StrategicForm) {
             this.game = game;
             this.strategicForm = strategicForm;
@@ -31,6 +32,18 @@ module GTE {
             this.group = this.game.add.group();
             this.rows = strategicForm.strategyToString(strategicForm.p1Strategies);
             this.cols = strategicForm.strategyToString(strategicForm.p2Strategies);
+            //--------------------------------//
+            // this.rows = ["X P","X Q","Y P","Y Q","Z P","Z Q"];
+            // this.cols = ["a d","a e","b d","b e","c d","c e"];
+            // this.newPayoff = [
+            //     [[3,4],[3,4],[2,5],[2,5],[4,5],[4,5]],
+            //     [[3,4],[3,4],[2,5],[2,5],[4,5],[4,5]],
+            //     [[2,3],[2,3],[2,3],[2,3],[2,3],[2,3]],
+            //     [[2,3],[2,3],[2,3],[2,3],[2,3],[2,3]],
+            //     [[1,3],[0,5],[1,3],[0,5],[1,3],[0,5]],
+            //     [[1,3],[4,2],[1,3],[4,2],[1,3],[4,2]],
+            // ];
+            //------------------------------//
             this.cells = [];
             this.p1Moves = [];
             this.p2Moves = [];
@@ -130,42 +143,42 @@ module GTE {
 
         createControlSprites() {
             this.background = this.game.add.sprite(this.group.x, this.group.y, this.game.cache.getBitmapData("line"));
-            this.background.width = this.cols.length*this.cells[0].width*this.group.scale.x;
-            this.background.height = this.rows.length*this.cells[0].height*this.group.scale.x;
+            this.background.width = this.cols.length * this.cells[0].width * this.group.scale.x;
+            this.background.height = this.rows.length * this.cells[0].height * this.group.scale.x;
             this.background.inputEnabled = true;
             this.background.input.draggable = true;
-            this.background.events.onDragUpdate.add(()=>{
-               this.group.position = this.background.position;
+            this.background.events.onDragUpdate.add(() => {
+                this.group.position = this.background.position;
             });
 
-            this.background.events.onInputOver.add(()=>{
+            this.background.events.onInputOver.add(() => {
                 this.game.canvas.style.cursor = "move";
             });
-            this.background.events.onInputOut.add(()=>{
+            this.background.events.onInputOut.add(() => {
                 this.game.canvas.style.cursor = "default";
             });
 
-            this.zoomInIcon = this.game.add.sprite((this.cols.length-0.5)*this.cells[0].width*0.5,(this.rows.length+0.2)*this.cells[0].height,"zoomIn",null, this.group );
+            this.zoomInIcon = this.game.add.sprite(0, (this.rows.length + 0.2) * this.cells[0].height, "zoomIn", null, this.group);
             this.zoomInIcon.scale.set(0.15);
-            this.zoomInIcon.anchor.set(0.5,0.5);
+            this.zoomInIcon.anchor.set(0, 0.5);
             this.zoomInIcon.inputEnabled = true;
-            this.zoomInIcon.events.onInputDown.add(()=>{
-                this.group.scale.set(this.group.scale.x*1.25);
-                this.background.width = this.cols.length*this.cells[0].width*this.group.scale.x;
-                this.background.height = this.rows.length*this.cells[0].height*this.group.scale.x;
+            this.zoomInIcon.events.onInputDown.add(() => {
+                this.group.scale.set(this.group.scale.x * 1.25);
+                this.background.width = this.cols.length * this.cells[0].width * this.group.scale.x;
+                this.background.height = this.rows.length * this.cells[0].height * this.group.scale.x;
             });
-            this.zoomOutIcon = this.game.add.sprite((this.cols.length+0.5)*this.cells[0].width*0.5,(this.rows.length+0.2)*this.cells[0].height,"zoomOut",null, this.group);
+            this.zoomOutIcon = this.game.add.sprite(this.zoomInIcon.width, this.zoomInIcon.y, "zoomOut", null, this.group);
             this.zoomOutIcon.scale.set(0.15);
-            this.zoomOutIcon.anchor.set(0.5,0.5);
+            this.zoomOutIcon.anchor.set(0,0.5);
             this.zoomOutIcon.inputEnabled = true;
-            this.zoomOutIcon.events.onInputDown.add(()=>{
-                this.group.scale.set(this.group.scale.x*0.8);
-                this.background.width = this.cols.length*this.cells[0].width*this.group.scale.x;
-                this.background.height = this.rows.length*this.cells[0].height*this.group.scale.x;
+            this.zoomOutIcon.events.onInputDown.add(() => {
+                this.group.scale.set(this.group.scale.x * 0.8);
+                this.background.width = this.cols.length * this.cells[0].width * this.group.scale.x;
+                this.background.height = this.rows.length * this.cells[0].height * this.group.scale.x;
             });
-            this.closeIcon = this.game.add.sprite((this.cols.length)*this.cells[0].width,(this.rows.length+0.2)*this.cells[0].height,"close",null, this.group);
+            this.closeIcon = this.game.add.sprite((this.cols.length) * this.cells[0].width, this.zoomInIcon.y, "close", null, this.group);
             this.closeIcon.scale.set(0.15);
-            this.closeIcon.anchor.set(1,0.5);
+            this.closeIcon.anchor.set(1, 0.5);
             this.closeIcon.inputEnabled = true;
 
             this.game.world.bringToTop(this.group);

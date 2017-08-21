@@ -4,6 +4,7 @@
 ///<reference path="Player.ts"/>
 ///<reference path="../Utils/Constants.ts"/>
 ///<reference path="LabelSetter.ts"/>
+///<reference path="../../lib/mathjs.d.ts"/>
 var GTE;
 (function (GTE) {
     /**The class which stores all the needed information for the tree - lists of nodes, moves, isets, players and the root */
@@ -168,6 +169,44 @@ var GTE;
                 throw new Error(GTE.SAME_PATH_ON_ROOT_ERROR_TEXT);
             }
         };
+        /**Checks if all nodes have the required number of children*/
+        Tree.prototype.checkNumberOfChildren = function (nodes) {
+            if (nodes[nodes.length - 1].children.length === 0) {
+                return false;
+            }
+            for (var i = 0; i < nodes.length - 1; i++) {
+                if (nodes[i].children.length !== nodes[i + 1].children.length || nodes[i].children.length === 0) {
+                    return false;
+                }
+            }
+            return true;
+        };
+        /**Checks if selected nodes have the same player assigned*/
+        Tree.prototype.checkIfNodesHaveTheSamePlayer = function (nodes) {
+            var players = [];
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                if (node.player && players.indexOf(node.player) === -1) {
+                    players.push(node.player);
+                }
+            }
+            return players.length <= 1;
+        };
+        /**Checks whether any 2 nodes of an array share a path to the root.*/
+        Tree.prototype.checkIfNodesSharePathToRoot = function (nodes) {
+            for (var i = 0; i < nodes.length; i++) {
+                var n1 = nodes[i];
+                var path1 = n1.getPathToRoot();
+                for (var j = i + 1; j < nodes.length; j++) {
+                    var n2 = nodes[j];
+                    var path2 = n2.getPathToRoot();
+                    if (path1.indexOf(n2) !== -1 || path2.indexOf(n1) !== -1) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
         Tree.prototype.cleanISets = function () {
             for (var i = 0; i < this.iSets.length; i++) {
                 if (this.iSets[i].nodes.length <= 1 || !this.checkNumberOfChildren(this.iSets[i].nodes)) {
@@ -209,6 +248,9 @@ var GTE;
             }
         };
         Tree.prototype.checkAllNodesLabeled = function () {
+            if (this.nodes.length === 1) {
+                return false;
+            }
             for (var i = 0; i < this.nodes.length; i++) {
                 if (this.nodes[i].children.length !== 0 && this.players.indexOf(this.nodes[i].player) === -1) {
                     return false;
@@ -265,47 +307,10 @@ var GTE;
                 n.payoffs.setPlayersCount(_this.players.length - 1);
             });
         };
-        /**Checks if all nodes have the required number of children*/
-        Tree.prototype.checkNumberOfChildren = function (nodes) {
-            if (nodes[nodes.length - 1].children.length === 0) {
-                return false;
-            }
-            for (var i = 0; i < nodes.length - 1; i++) {
-                if (nodes[i].children.length !== nodes[i + 1].children.length || nodes[i].children.length === 0) {
-                    return false;
-                }
-            }
-            return true;
-        };
-        /**Checks if selected nodes have the same player assigned*/
-        Tree.prototype.checkIfNodesHaveTheSamePlayer = function (nodes) {
-            var players = [];
-            for (var i = 0; i < nodes.length; i++) {
-                var node = nodes[i];
-                if (node.player && players.indexOf(node.player) === -1) {
-                    players.push(node.player);
-                }
-            }
-            return players.length <= 1;
-        };
-        /**Checks whether any 2 nodes of an array share a path to the root.*/
-        Tree.prototype.checkIfNodesSharePathToRoot = function (nodes) {
-            for (var i = 0; i < nodes.length; i++) {
-                var n1 = nodes[i];
-                var path1 = n1.getPathToRoot();
-                for (var j = i + 1; j < nodes.length; j++) {
-                    var n2 = nodes[j];
-                    var path2 = n2.getPathToRoot();
-                    if (path1.indexOf(n2) !== -1 || path2.indexOf(n1) !== -1) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        };
         /** A method which sets the probabilities of a chance node, once a new probability is set externally*/
         Tree.prototype.chanceNodesSetProbabilities = function (move, text) {
-            var newProb = parseFloat(text);
+            var frac = math.fraction(text);
+            var newProb = math.number((math.fraction(text)));
             if (newProb >= 0 && newProb <= 1) {
                 move.probability = newProb;
                 var probabilities = [];

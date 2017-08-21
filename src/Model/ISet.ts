@@ -13,7 +13,7 @@ module GTE{
             if(nodes) {
                 nodes.forEach(n => {
                     this.addNode(n);
-                    // n.convertToLabeled(this.player);
+                    n.convertToLabeled(this.player);
                 });
             }
         }

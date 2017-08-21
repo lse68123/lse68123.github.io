@@ -114,40 +114,46 @@ module GTE {
         private setButtonFunctionality() {
             // Add node button functionality
             this.plusButton.events.onInputDown.add(() => {
-                if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length !== 0) {
-                    this.userActionController.addNodesHandler();
-                }
-                else if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length === 0) {
-                    this.userActionController.addNodesHandler(this.previouslyHoveredSprite);
-                }
-                else if (this.previouslyHoveredSprite instanceof ISetView) {
-                    //A hack in order not to break the information set.
-                    this.userActionController.treeController.selectedNodes = (<ISetView>this.previouslyHoveredSprite).nodes.slice(0);
-                    this.userActionController.addNodesHandler();
-                    this.userActionController.treeController.emptySelectedNodes();
+                if (this.buttonsGroup.alpha===1) {
+                    if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length !== 0) {
+                        this.userActionController.addNodesHandler();
+                    }
+                    else if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length === 0) {
+                        this.userActionController.addNodesHandler(this.previouslyHoveredSprite);
+                    }
+                    else if (this.previouslyHoveredSprite instanceof ISetView) {
+                        //A hack in order not to break the information set.
+                        this.userActionController.treeController.emptySelectedNodes();
+                        this.userActionController.treeController.selectedNodes = (<ISetView>this.previouslyHoveredSprite).nodes.slice(0);
+                        this.userActionController.addNodesHandler();
+                        this.userActionController.treeController.emptySelectedNodes();
+                    }
                 }
             });
 
             // Remove node button functionality
             this.minusButton.events.onInputDown.add(() => {
-                if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length !== 0) {
-                    this.userActionController.deleteNodeHandler();
-                }
-                else if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length === 0) {
-                    this.userActionController.deleteNodeHandler(this.previouslyHoveredSprite);
-                }
-                else if (this.previouslyHoveredSprite instanceof ISetView) {
-                    let nodes = (<ISetView>this.previouslyHoveredSprite).nodes;
-                    if(nodes[0].node.children.length>1) {
-                        let nodesToDelete = [];
-                        nodes.forEach(n => {
-                            nodesToDelete.push(this.userActionController.treeController.treeView.findNodeView(n.node.children[n.node.children.length - 1]));
-
-                        });
-                        // Same hack as above
-                        this.userActionController.treeController.selectedNodes = nodesToDelete.slice(0);
+                if (this.buttonsGroup.alpha===1) {
+                    if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length !== 0) {
                         this.userActionController.deleteNodeHandler();
-                        this.userActionController.treeController.emptySelectedNodes();
+                    }
+                    else if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length === 0) {
+                        this.userActionController.deleteNodeHandler(this.previouslyHoveredSprite);
+                    }
+                    else if (this.previouslyHoveredSprite instanceof ISetView) {
+                        let nodes = (<ISetView>this.previouslyHoveredSprite).nodes;
+                        if (nodes[0].node.children.length > 1) {
+                            let nodesToDelete = [];
+                            nodes.forEach(n => {
+                                nodesToDelete.push(this.userActionController.treeController.treeView.findNodeView(n.node.children[n.node.children.length - 1]));
+
+                            });
+                            // Same hack as above
+                            this.userActionController.treeController.emptySelectedNodes();
+                            this.userActionController.treeController.selectedNodes = nodesToDelete.slice(0);
+                            this.userActionController.deleteNodeHandler();
+                            this.userActionController.treeController.emptySelectedNodes();
+                        }
                     }
                 }
             });
@@ -161,47 +167,57 @@ module GTE {
             });
             playerButtons.forEach((btn: Phaser.Sprite) => {
                 btn.events.onInputDown.add(() => {
-                    if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length !== 0) {
-                        this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1);
-                    }
-                    else if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length === 0) {
-                        this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1, this.previouslyHoveredSprite);
-                    }
-                    else if (this.previouslyHoveredSprite instanceof ISetView) {
-                        let nodes = (<ISetView>this.previouslyHoveredSprite).nodes;
-                        nodes.forEach(n => {
-                            this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1, n);
-                        });
+                    if (this.buttonsGroup.alpha===1) {
+                        if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length !== 0) {
+                            this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1);
+                        }
+                        else if (this.previouslyHoveredSprite instanceof NodeView && this.selectedNodesSprites.length === 0) {
+                            this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1, this.previouslyHoveredSprite);
+                        }
+                        else if (this.previouslyHoveredSprite instanceof ISetView) {
+                            let nodes = (<ISetView>this.previouslyHoveredSprite).nodes;
+                            nodes.forEach(n => {
+                                this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1, n);
+                            });
+                        }
                     }
                 });
             });
 
             // Chance player button functionality
             this.chancePlayerButton.events.onInputDown.add(() => {
-                if (this.previouslyHoveredSprite instanceof NodeView) {
-                    this.userActionController.assignChancePlayerToNodeHandler(this.previouslyHoveredSprite);
+                if (this.buttonsGroup.alpha===1) {
+                    if (this.previouslyHoveredSprite instanceof NodeView) {
+                        this.userActionController.assignChancePlayerToNodeHandler(this.previouslyHoveredSprite);
+                    }
                 }
             });
 
 
             // Adding Information sets functionality
             this.linkButton.events.onInputDown.add(() => {
-                this.userActionController.createISetHandler();
+                if (this.buttonsGroup.alpha===1) {
+                    this.userActionController.createISetHandler();
+                }
             });
 
             // Removing information sets functionality
             this.unlinkButton.events.onInputDown.add(() => {
-                if (this.previouslyHoveredSprite instanceof NodeView) {
-                    this.userActionController.removeISetHandler((<NodeView>this.previouslyHoveredSprite).node.iSet);
-                }
-                else if (this.previouslyHoveredSprite instanceof ISetView) {
-                    this.userActionController.removeISetHandler((<ISetView>this.previouslyHoveredSprite).iSet);
+                if (this.buttonsGroup.alpha===1) {
+                    if (this.previouslyHoveredSprite instanceof NodeView) {
+                        this.userActionController.removeISetHandler((<NodeView>this.previouslyHoveredSprite).node.iSet);
+                    }
+                    else if (this.previouslyHoveredSprite instanceof ISetView) {
+                        this.userActionController.removeISetHandler((<ISetView>this.previouslyHoveredSprite).iSet);
+                    }
                 }
             });
 
             // Cut Sprite functionality
             this.cutButton.events.onInputDown.add(() => {
-                this.userActionController.initiateCutSpriteHandler(<ISetView>this.previouslyHoveredSprite);
+                if (this.buttonsGroup.alpha===1) {
+                    this.userActionController.initiateCutSpriteHandler(<ISetView>this.previouslyHoveredSprite);
+                }
             });
 
             // Clear the menu after clicking every button.
@@ -288,7 +304,7 @@ module GTE {
                         this.linkButton.setInactive();
                     }
                     // If one among the selected nodes is a leaf, disable all but the plus and minus buttons
-                    for (var i = 0; i < this.selectedNodesSprites.length; i++) {
+                    for (let i = 0; i < this.selectedNodesSprites.length; i++) {
                         if (this.selectedNodesSprites[i].node.children.length === 0) {
                             this.buttonsArray.forEach((btn: HoverButton) => {
                                 btn.setHidden();

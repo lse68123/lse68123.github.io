@@ -12,7 +12,7 @@ var GTE;
             if (nodes) {
                 nodes.forEach(function (n) {
                     _this.addNode(n);
-                    // n.convertToLabeled(this.player);
+                    n.convertToLabeled(_this.player);
                 });
             }
         }

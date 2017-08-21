@@ -1,4 +1,5 @@
 ///<reference path="Node.ts"/>
+///<reference path="../../lib/mathjs.d.ts"/>
 var GTE;
 (function (GTE) {
     /**The class Move which has type, from, to, label and probability */
@@ -26,32 +27,11 @@ var GTE;
         /**Returns the text of the probability, depending on the current mode*/
         Move.prototype.getProbabilityText = function (fractional) {
             if (fractional && this.probability !== 1 && this.probability !== 0) {
-                for (var i = 1; i < 21; i++) {
-                    for (var j = i + 1; j < 20; j++) {
-                        if (Math.abs(i / j - this.probability) < 0.00001) {
-                            return i + "/" + j;
-                        }
-                    }
-                }
-                return this.convertToFraction();
+                return math.format(math.fraction(this.probability));
             }
             else {
-                return (Math.round(this.probability * 100) / 100).toString();
+                return math.format(math.round(math.number(this.probability), 2));
             }
-        };
-        Move.prototype.convertToFraction = function () {
-            var strProbability = this.probability.toString();
-            var fractString = strProbability.substring(strProbability.indexOf(".") + 1);
-            var numerator = parseInt(fractString);
-            var denominator = Math.pow(10, fractString.length);
-            var gcd = this.gcd(numerator, denominator);
-            return numerator / gcd + "/" + denominator / gcd;
-        };
-        Move.prototype.gcd = function (m, n) {
-            if (!n) {
-                return m;
-            }
-            return this.gcd(n, m % n);
         };
         /**Destroy method ensures there are no memory-leaks */
         Move.prototype.destroy = function () {

@@ -207,9 +207,6 @@ module GTE {
                 let child1 = this.treeView.addChildToNode(nodeV);
                 this.attachHandlersToNode(child1);
             }
-            this.tree.cleanISets();
-            this.treeView.cleanISets();
-            this.resetTree();
         }
 
         /**A method for deleting a node - 2 step deletion.*/
@@ -230,9 +227,6 @@ module GTE {
                 this.nodesToDelete = [];
                 node.convertToDefault();
             }
-            this.tree.cleanISets();
-            this.treeView.cleanISets();
-            this.resetTree();
         }
 
         /** A method for assigning a player to a given node.*/
@@ -258,7 +252,7 @@ module GTE {
             n.resetNodeDrawing();
             n.resetLabelText(this.treeViewProperties.zeroSumOn);
 
-            this.resetTree();
+            this.resetTree(true);
         }
 
         /**A method for assigning chance player to a given node*/
@@ -266,7 +260,7 @@ module GTE {
             n.node.convertToChance(this.tree.players[0]);
             n.resetNodeDrawing();
             n.resetLabelText(this.treeViewProperties.zeroSumOn);
-            this.resetTree();
+            this.resetTree(true);
 
         }
 
@@ -280,6 +274,7 @@ module GTE {
             if (playerID > this.tree.players.length - 1) {
                 this.tree.addPlayer(new Player(playerID, playerID.toString(), PLAYER_COLORS[playerID - 1]));
                 $("#player-number").html((this.tree.players.length - 1).toString());
+                $("#zero-sum-wrapper").css("opacity",0.3);
                 this.treeView.drawLabels(true);
             }
         }
@@ -318,18 +313,17 @@ module GTE {
                     player = n.node.player;
                 }
             });
-
             let iSet = this.tree.addISet(player, iSetNodes);
             let iSetV = this.treeView.addISetView(iSet);
             this.attachHandlersToISet(iSetV);
-            this.resetTree();
+            this.resetTree(true);
         }
 
         /**A method for deleting an iSet*/
         removeISetHandler(iSet: ISet) {
             this.tree.removeISet(iSet);
             this.treeView.removeISetView(this.treeView.findISetView(iSet));
-            this.resetTree();
+            this.resetTree(true);
         }
 
         /**A method which removes all isets from the selected nodes*/
@@ -384,7 +378,7 @@ module GTE {
                     this.createISet(rightNodes);
                 }
             }
-            this.resetTree();
+            this.resetTree(true);
         }
 
         /**A method for assigning random payoffs to nodes*/
@@ -397,10 +391,15 @@ module GTE {
         }
 
         /**A method for resetting the tree after each action on the tree*/
-        private resetTree() {
-
+        resetTree(soft?:boolean) {
             if (this.tree.nodes.length > 1) {
-                this.treeView.drawTree();
+                if(!soft) {
+                    this.treeView.drawTree();
+                }
+                else{
+                    this.treeView.drawISets();
+                    this.treeView.drawLabels(true);
+                }
             }
         }
 

@@ -67,6 +67,7 @@ module GTE {
         createNewTree() {
             this.deleteNodeHandler(this.treeController.treeView.nodes[0]);
             this.addNodesHandler(this.treeController.treeView.nodes[0]);
+            this.destroyStrategicForm();
         }
 
         /**Saves a tree to a txt file*/
@@ -136,6 +137,7 @@ module GTE {
                 this.treeController.errorPopUp.show("Error in reading file. ");
                 this.treeController.createInitialTree();
             }
+            this.destroyStrategicForm();
         }
 
         /**A method which saves the tree to a png file*/
@@ -170,7 +172,10 @@ module GTE {
                     this.treeController.addNodeHandler(n);
                 });
             }
-
+            this.treeController.tree.cleanISets();
+            this.treeController.treeView.cleanISets();
+            this.treeController.resetTree();
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         }
 
@@ -196,6 +201,12 @@ module GTE {
             deletedNodes.forEach(n => {
                 this.treeController.selectedNodes.splice(this.treeController.selectedNodes.indexOf(n), 1);
             });
+
+            this.treeController.tree.cleanISets();
+            this.treeController.treeView.cleanISets();
+            this.treeController.resetTree();
+
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         }
 
@@ -233,7 +244,8 @@ module GTE {
                 n.resetNodeDrawing();
                 n.resetLabelText(this.treeController.treeViewProperties.zeroSumOn);
             });
-            this.treeController.treeView.drawTree();
+            this.treeController.resetTree(true);
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         }
 
@@ -242,12 +254,14 @@ module GTE {
             if (this.treeController.selectedNodes.length > 1) {
                 this.treeController.createISet(this.treeController.selectedNodes);
             }
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         }
 
         /**Remove iSetHandler*/
         removeISetHandler(iSet: ISet) {
             this.treeController.removeISetHandler(iSet);
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         }
 
@@ -259,6 +273,7 @@ module GTE {
             else {
                 this.treeController.removeISetsByNodesHandler();
             }
+            this.destroyStrategicForm();
             this.undoRedoController.saveNewTree();
         }
 
@@ -266,23 +281,26 @@ module GTE {
         undoRedoHandler(undo: boolean) {
             this.undoRedoController.changeTreeInController(undo);
             $("#player-number").html((this.treeController.tree.players.length - 1).toString());
+            this.destroyStrategicForm();
         }
 
         /**A method for assigning random payoffs*/
         randomPayoffsHandler() {
             this.treeController.randomPayoffs();
+            this.destroyStrategicForm();
         }
 
         /**A method which toggles the zero sum on or off*/
         toggleZeroSum() {
             this.treeController.treeViewProperties.zeroSumOn = !this.treeController.treeViewProperties.zeroSumOn;
-            this.treeController.treeView.drawTree();
+            this.destroyStrategicForm();
+            this.treeController.resetTree(true);
         }
 
         /**A method which toggles the fractional or decimal view of chance moves*/
         toggleFractionDecimal() {
             this.treeController.treeViewProperties.fractionOn = !this.treeController.treeViewProperties.fractionOn;
-            this.treeController.treeView.drawTree();
+            this.treeController.resetTree(true);
         }
 
         /**Starts the "Cut" state for an Information set*/
@@ -310,6 +328,7 @@ module GTE {
                 this.cutSprite.alpha = 0;
 
                 this.treeController.cutInformationSet(this.cutInformationSet, this.cutSprite.x, this.cutSprite.y);
+                this.treeController.resetTree(true);
                 this.undoRedoController.saveNewTree();
             }, this);
 
@@ -435,10 +454,18 @@ module GTE {
 
                     }
                     else {
-                        nodeV.node.payoffs.loadFromString(this.treeController.labelInput.inputField.val());
+                        nodeV.node.payoffs.saveFromString(this.treeController.labelInput.inputField.val());
                         this.treeController.treeView.nodes.forEach(n => {
                             n.resetLabelText(this.treeController.treeViewProperties.zeroSumOn);
                         });
+                        if(this.treeController.tree.players.length===3){
+                            try{
+                                this.createStrategicForm();
+                            }
+                            catch(err){
+                                //Handle error
+                            }
+                        }
                     }
 
                 }
@@ -447,7 +474,7 @@ module GTE {
             }
         }
 
-        /**Hides then input*/
+        /**Hides the input*/
         hideInputLabel() {
             if (this.treeController.labelInput.active) {
                 this.treeController.labelInput.hide();
@@ -503,30 +530,37 @@ module GTE {
         }
 
         createStrategicForm() {
+            this.destroyStrategicForm();
+
+            if(this.treeController.tree.checkAllNodesLabeled()){
+                // try {
+                    this.strategicForm = new StrategicForm(this.treeController.tree);
+                    this.strategicFormView = new StrategicFormView(this.game, this.strategicForm);
+                    this.strategicFormView.background.events.onDragStart.add(() => {
+                        this.game.canvas.style.cursor = "move";
+                        this.treeController.selectionRectangle.active = false;
+                    });
+                    this.strategicFormView.background.events.onDragStop.add(() => {
+                        this.game.canvas.style.cursor = "move";
+                        this.treeController.selectionRectangle.active = true;
+                    });
+                    this.strategicFormView.closeIcon.events.onInputDown.add(() => {
+                        this.strategicForm.destroy();
+                        this.strategicFormView.destroy();
+                    });
+                // }
+                // catch (err) {
+                //     this.treeController.errorPopUp.show(err.message);
+                // }
+            }
+        }
+
+        destroyStrategicForm(){
             if (this.strategicForm) {
                 this.strategicForm.destroy();
             }
             if (this.strategicFormView) {
                 this.strategicFormView.destroy();
-            }
-            try {
-                this.strategicForm = new StrategicForm(this.treeController.tree);
-                this.strategicFormView = new StrategicFormView(this.game, this.strategicForm);
-                this.strategicFormView.background.events.onDragStart.add(() => {
-                    this.game.canvas.style.cursor = "move";
-                    this.treeController.selectionRectangle.active = false;
-                });
-                this.strategicFormView.background.events.onDragStop.add(() => {
-                    this.game.canvas.style.cursor = "move";
-                    this.treeController.selectionRectangle.active = true;
-                });
-                this.strategicFormView.closeIcon.events.onInputDown.add(() => {
-                    this.strategicForm.destroy();
-                    this.strategicFormView.destroy();
-                });
-            }
-            catch (err) {
-                this.treeController.errorPopUp.show(err.message);
             }
         }
     }

@@ -108,11 +108,11 @@ var GTE;
             var node = nodeV.node;
             var child = new GTE.Node();
             this.tree.addChildToNode(node, child);
-            var childV = new GTE.NodeView(this.game, child);
+            var childV = new GTE.NodeView(this.game, child, nodeV.x, nodeV.y);
             var move = new GTE.MoveView(this.game, nodeV, childV);
             this.nodes.push(childV);
             this.moves.push(move);
-            this.drawTree();
+            // this.drawTree();
             return childV;
         };
         /** A helper method for finding the nodeView, given a Node*/

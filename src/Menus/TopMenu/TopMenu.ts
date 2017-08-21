@@ -1,5 +1,6 @@
 ///<reference path="../../../lib/jquery.d.ts"/>
 ///<reference path="../../Controller/UserActionController.ts"/>
+///<reference path="../../Utils/Constants.ts"/>
 
 
 module GTE {
@@ -34,8 +35,14 @@ module GTE {
         rangeTree: JQuery;
         rangeLevel: JQuery;
 
+        videoButton: JQuery;
+        videoContainer: JQuery;
+        closeVideoButton: JQuery;
+        youtubeVideo: JQuery;
+
         inputTree: JQuery;
         inputLevel: JQuery;
+
 
         constructor(userActionController: UserActionController) {
             this.userActionController = userActionController;
@@ -55,8 +62,12 @@ module GTE {
             this.fractionDecimalButton = $("#fraction-decimal-wrapper");
             this.strategicFormButton = $("#strat-form-button");
             this.infoButton = $("#info-button-wrapper");
-            this.infoContainer = $(".info-main-container");
-            this.closeInfoButton = $(".close-info-img");
+            this.infoContainer = $("#info-container");
+            this.closeInfoButton = $("#close-info");
+            this.videoButton = $("#video-button-wrapper");
+            this.videoContainer = $("#video-container");
+            this.closeVideoButton = $("#close-video");
+            this.youtubeVideo = $("#youtube-video");
             this.overlay = $("#label-overlay");
             this.settingsButton = $("#settings-button-wrapper");
             this.settingsWindow = $(".settings-menu-container");
@@ -64,6 +75,8 @@ module GTE {
             this.inputTree = $('.input-field-tree');
             this.rangeLevel = $('.input-range-level');
             this.inputLevel = $('.input-field-level');
+            this.undoButton.css("opacity", 0.3);
+            this.redoButton.css("opacity", 0.3);
             this.attachEvents();
         }
 
@@ -91,10 +104,13 @@ module GTE {
                 if (playersCount > 1) {
                     this.userActionController.removeLastPlayerHandler();
                     this.playerNumber.html((playersCount - 1).toString());
-                    this.playerPlusButton.css({opacity: 1});
+                    this.playerPlusButton.css("opacity", "1");
                 }
                 if (playersCount === 2) {
-                    this.playerMinusButton.css({opacity: 0.3});
+                    this.playerMinusButton.css("opacity", "0.3");
+                }
+                if (playersCount === 3) {
+                    this.zeroSumButton.css("opacity", "1");
                 }
 
                 console.log(this.playerNumber);
@@ -114,26 +130,27 @@ module GTE {
 
             this.undoButton.on("click", () => {
                 this.userActionController.undoRedoHandler(true);
-                this.resetUndoReddoButtons();
             });
 
             this.redoButton.on("click", () => {
                 this.userActionController.undoRedoHandler(false);
-                this.resetUndoReddoButtons();
             });
 
             this.randomPayoffsButton.on("click", () => {
                 this.userActionController.randomPayoffsHandler();
             });
             this.zeroSumButton.on("click", () => {
-                let src = this.zeroSumButton.find("img").attr("src");
-                if (src === "src/Assets/Images/TopMenu/zeroSum.png") {
-                    this.zeroSumButton.find("img").attr("src", "src/Assets/Images/TopMenu/nonZeroSum.png")
+                let opacity = this.zeroSumButton.css("opacity");
+                if (opacity !== "0.3") {
+                    let src = this.zeroSumButton.find("img").attr("src");
+                    if (src === "src/Assets/Images/TopMenu/zeroSum.png") {
+                        this.zeroSumButton.find("img").attr("src", "src/Assets/Images/TopMenu/nonZeroSum.png")
+                    }
+                    else if (src === "src/Assets/Images/TopMenu/nonZeroSum.png") {
+                        this.zeroSumButton.find("img").attr("src", "src/Assets/Images/TopMenu/zeroSum.png")
+                    }
+                    this.userActionController.toggleZeroSum();
                 }
-                else if (src === "src/Assets/Images/TopMenu/nonZeroSum.png") {
-                    this.zeroSumButton.find("img").attr("src", "src/Assets/Images/TopMenu/zeroSum.png")
-                }
-                this.userActionController.toggleZeroSum();
             });
 
             this.fractionDecimalButton.on("click", () => {
@@ -162,6 +179,18 @@ module GTE {
                 this.overlay.removeClass("show-overlay");
             });
 
+            this.videoButton.on("click", () => {
+                this.youtubeVideo.attr("src", YOUTUBE_VIDEO_URL);
+                this.videoContainer.addClass("show-container");
+                this.overlay.addClass("show-overlay");
+            });
+
+            this.closeVideoButton.on("click", () => {
+                this.videoContainer.removeClass("show-container");
+                this.overlay.removeClass("show-overlay");
+                this.youtubeVideo.attr("src", "");
+            });
+
             this.overlay.on("click", () => {
                 this.closeInfoButton.click();
             });
@@ -184,7 +213,7 @@ module GTE {
                 if (scale && scale >= 0 && scale <= 2) {
                     this.userActionController.treeController.treeViewProperties.treeWidth = scale * this.userActionController.game.width * INITIAL_TREE_WIDTH;
                 }
-                this.userActionController.treeController.treeView.drawTree();
+                this.userActionController.treeController.resetTree();
 
             });
             this.rangeLevel.on('input', () => {
@@ -193,7 +222,7 @@ module GTE {
                 if (scale && scale >= 0 && scale <= 2) {
                     this.userActionController.treeController.treeViewProperties.levelHeight = scale * this.userActionController.game.height * INITIAL_TREE_HEIGHT;
                 }
-                this.userActionController.treeController.treeView.drawTree();
+                this.userActionController.treeController.resetTree();
             });
 
             this.inputTree.on('input', () => {
@@ -202,7 +231,7 @@ module GTE {
                 if (scale && scale >= 0 && scale <= 2) {
                     this.userActionController.treeController.treeViewProperties.treeWidth = scale * this.userActionController.game.width * INITIAL_TREE_WIDTH;
                 }
-                this.userActionController.treeController.treeView.drawTree();
+                this.userActionController.treeController.resetTree();
             });
             this.inputLevel.on('input', () => {
                 this.rangeLevel.val(this.inputLevel.val());
@@ -210,25 +239,9 @@ module GTE {
                 if (scale && scale >= 0 && scale <= 2) {
                     this.userActionController.treeController.treeViewProperties.levelHeight = scale * this.userActionController.game.height * INITIAL_TREE_HEIGHT;
                 }
-                this.userActionController.treeController.treeView.drawTree();
+                this.userActionController.treeController.resetTree();
             });
 
         }
-
-        resetUndoReddoButtons() {
-            if (this.userActionController.undoRedoController.currentTreeIndex === 0) {
-                this.undoButton.css({opacity: 0.3});
-            }
-            else {
-                this.undoButton.css({opacity: 1});
-            }
-            if (this.userActionController.undoRedoController.currentTreeIndex === this.userActionController.undoRedoController.treesList.length - 1) {
-                this.redoButton.css({opacity: 0.3});
-            }
-            else {
-                this.redoButton.css({opacity: 1});
-            }
-        }
-
     }
 }

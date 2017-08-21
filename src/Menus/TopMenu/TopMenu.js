@@ -1,5 +1,6 @@
 ///<reference path="../../../lib/jquery.d.ts"/>
 ///<reference path="../../Controller/UserActionController.ts"/>
+///<reference path="../../Utils/Constants.ts"/>
 var GTE;
 (function (GTE) {
     var TopMenu = (function () {
@@ -21,8 +22,12 @@ var GTE;
             this.fractionDecimalButton = $("#fraction-decimal-wrapper");
             this.strategicFormButton = $("#strat-form-button");
             this.infoButton = $("#info-button-wrapper");
-            this.infoContainer = $(".info-main-container");
-            this.closeInfoButton = $(".close-info-img");
+            this.infoContainer = $("#info-container");
+            this.closeInfoButton = $("#close-info");
+            this.videoButton = $("#video-button-wrapper");
+            this.videoContainer = $("#video-container");
+            this.closeVideoButton = $("#close-video");
+            this.youtubeVideo = $("#youtube-video");
             this.overlay = $("#label-overlay");
             this.settingsButton = $("#settings-button-wrapper");
             this.settingsWindow = $(".settings-menu-container");
@@ -30,6 +35,8 @@ var GTE;
             this.inputTree = $('.input-field-tree');
             this.rangeLevel = $('.input-range-level');
             this.inputLevel = $('.input-field-level');
+            this.undoButton.css("opacity", 0.3);
+            this.redoButton.css("opacity", 0.3);
             this.attachEvents();
         }
         TopMenu.prototype.attachEvents = function () {
@@ -54,10 +61,13 @@ var GTE;
                 if (playersCount > 1) {
                     _this.userActionController.removeLastPlayerHandler();
                     _this.playerNumber.html((playersCount - 1).toString());
-                    _this.playerPlusButton.css({ opacity: 1 });
+                    _this.playerPlusButton.css("opacity", "1");
                 }
                 if (playersCount === 2) {
-                    _this.playerMinusButton.css({ opacity: 0.3 });
+                    _this.playerMinusButton.css("opacity", "0.3");
+                }
+                if (playersCount === 3) {
+                    _this.zeroSumButton.css("opacity", "1");
                 }
                 console.log(_this.playerNumber);
             });
@@ -74,24 +84,25 @@ var GTE;
             });
             this.undoButton.on("click", function () {
                 _this.userActionController.undoRedoHandler(true);
-                _this.resetUndoReddoButtons();
             });
             this.redoButton.on("click", function () {
                 _this.userActionController.undoRedoHandler(false);
-                _this.resetUndoReddoButtons();
             });
             this.randomPayoffsButton.on("click", function () {
                 _this.userActionController.randomPayoffsHandler();
             });
             this.zeroSumButton.on("click", function () {
-                var src = _this.zeroSumButton.find("img").attr("src");
-                if (src === "src/Assets/Images/TopMenu/zeroSum.png") {
-                    _this.zeroSumButton.find("img").attr("src", "src/Assets/Images/TopMenu/nonZeroSum.png");
+                var opacity = _this.zeroSumButton.css("opacity");
+                if (opacity !== "0.3") {
+                    var src = _this.zeroSumButton.find("img").attr("src");
+                    if (src === "src/Assets/Images/TopMenu/zeroSum.png") {
+                        _this.zeroSumButton.find("img").attr("src", "src/Assets/Images/TopMenu/nonZeroSum.png");
+                    }
+                    else if (src === "src/Assets/Images/TopMenu/nonZeroSum.png") {
+                        _this.zeroSumButton.find("img").attr("src", "src/Assets/Images/TopMenu/zeroSum.png");
+                    }
+                    _this.userActionController.toggleZeroSum();
                 }
-                else if (src === "src/Assets/Images/TopMenu/nonZeroSum.png") {
-                    _this.zeroSumButton.find("img").attr("src", "src/Assets/Images/TopMenu/zeroSum.png");
-                }
-                _this.userActionController.toggleZeroSum();
             });
             this.fractionDecimalButton.on("click", function () {
                 var src = _this.fractionDecimalButton.find("img").attr("src");
@@ -114,6 +125,16 @@ var GTE;
                 _this.infoContainer.removeClass("show-container");
                 _this.overlay.removeClass("show-overlay");
             });
+            this.videoButton.on("click", function () {
+                _this.youtubeVideo.attr("src", GTE.YOUTUBE_VIDEO_URL);
+                _this.videoContainer.addClass("show-container");
+                _this.overlay.addClass("show-overlay");
+            });
+            this.closeVideoButton.on("click", function () {
+                _this.videoContainer.removeClass("show-container");
+                _this.overlay.removeClass("show-overlay");
+                _this.youtubeVideo.attr("src", "");
+            });
             this.overlay.on("click", function () {
                 _this.closeInfoButton.click();
             });
@@ -133,7 +154,7 @@ var GTE;
                 if (scale && scale >= 0 && scale <= 2) {
                     _this.userActionController.treeController.treeViewProperties.treeWidth = scale * _this.userActionController.game.width * GTE.INITIAL_TREE_WIDTH;
                 }
-                _this.userActionController.treeController.treeView.drawTree();
+                _this.userActionController.treeController.resetTree();
             });
             this.rangeLevel.on('input', function () {
                 _this.inputLevel.val(_this.rangeLevel.val());
@@ -141,7 +162,7 @@ var GTE;
                 if (scale && scale >= 0 && scale <= 2) {
                     _this.userActionController.treeController.treeViewProperties.levelHeight = scale * _this.userActionController.game.height * GTE.INITIAL_TREE_HEIGHT;
                 }
-                _this.userActionController.treeController.treeView.drawTree();
+                _this.userActionController.treeController.resetTree();
             });
             this.inputTree.on('input', function () {
                 _this.rangeTree.val(_this.inputTree.val());
@@ -149,7 +170,7 @@ var GTE;
                 if (scale && scale >= 0 && scale <= 2) {
                     _this.userActionController.treeController.treeViewProperties.treeWidth = scale * _this.userActionController.game.width * GTE.INITIAL_TREE_WIDTH;
                 }
-                _this.userActionController.treeController.treeView.drawTree();
+                _this.userActionController.treeController.resetTree();
             });
             this.inputLevel.on('input', function () {
                 _this.rangeLevel.val(_this.inputLevel.val());
@@ -157,22 +178,8 @@ var GTE;
                 if (scale && scale >= 0 && scale <= 2) {
                     _this.userActionController.treeController.treeViewProperties.levelHeight = scale * _this.userActionController.game.height * GTE.INITIAL_TREE_HEIGHT;
                 }
-                _this.userActionController.treeController.treeView.drawTree();
+                _this.userActionController.treeController.resetTree();
             });
-        };
-        TopMenu.prototype.resetUndoReddoButtons = function () {
-            if (this.userActionController.undoRedoController.currentTreeIndex === 0) {
-                this.undoButton.css({ opacity: 0.3 });
-            }
-            else {
-                this.undoButton.css({ opacity: 1 });
-            }
-            if (this.userActionController.undoRedoController.currentTreeIndex === this.userActionController.undoRedoController.treesList.length - 1) {
-                this.redoButton.css({ opacity: 0.3 });
-            }
-            else {
-                this.redoButton.css({ opacity: 1 });
-            }
         };
         return TopMenu;
     }());

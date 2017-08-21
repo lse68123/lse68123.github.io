@@ -53,5 +53,7 @@ var GTE;
     GTE.MOVES_TEXT_SIZE = 0.25;
     GTE.STRATEGIC_PLAYERS_ERROR_TEXT = "Strategic form only available for 2 players!";
     GTE.STRATEGIC_NOT_LABELED_ERROR_TEXT = "Not all nodes are owned or chance!";
+    GTE.STRATEGIC_FORM_DELIMITER = " ";
+    GTE.YOUTUBE_VIDEO_URL = "https://www.youtube.com/embed/kurQfjPXfic";
 })(GTE || (GTE = {}));
 //# sourceMappingURL=Constants.js.map

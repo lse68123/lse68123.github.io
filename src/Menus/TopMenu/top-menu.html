@@ -36,7 +36,7 @@
     </div>
     <div id="redo-wrapper" class="button-wrapper">
         <img src="src/Assets/Images/TopMenu/redo.png" class="top-menu-img">
-        <span class="tooltip">New File</span>
+        <span class="tooltip">Redo</span>
     </div>
     <div id="random-payoffs-wrapper" class="button-wrapper">
         <img src="src/Assets/Images/TopMenu/randomPayoffs.png" class="top-menu-img">
@@ -51,7 +51,7 @@
         <img src="src/Assets/Images/TopMenu/fraction.png" class="top-menu-img">
         <span class="tooltip">Fraction/Decimal</span>
     </div>
-        <button id="strat-form-button" class="button-wrapper">STRATEGIC FORM</button>
+    <button id="strat-form-button" class="button-wrapper">STRATEGIC FORM</button>
 
     <div id="settings-button-wrapper" class="button-wrapper">
         <img src="src/Assets/Images/TopMenu/settings.png" class="top-menu-img">
@@ -69,10 +69,9 @@
     </div>
 
 
-
-    <div class="info-main-container">
-        <div class="close-info">
-            <img src="src/Assets/Images/TopMenu/close-info.png" class="close-info-img">
+    <div id="info-container" class="main-container">
+        <div class="close-button" id="close-info">
+            <img src="src/Assets/Images/TopMenu/close-info.png" class="close-img" >
         </div>
         <div id="title" class="row">
             <div class="section-text">
@@ -92,7 +91,9 @@
                 <div class="hotkey">d / delete</div>
             </div>
             <div class="section-text">
-                <div class="explain">Deletes all children from the selected nodes. If a node has no children, then it is removed</div>
+                <div class="explain">Deletes all children from the selected nodes. If a node has no children, then it is
+                    removed
+                </div>
             </div>
         </div>
         <div id="one-four" class="row">
@@ -209,7 +210,7 @@
         </div>
         <div id="arrow-keys" class="row">
             <div class="section-hotkey">
-                <div class="hotkey">&uarr; &darr; &larr; &rarr; </div>
+                <div class="hotkey">&uarr; &darr; &larr; &rarr;</div>
             </div>
             <div class="section-text">
                 <div class="explain">Manually reposition selected nodes</div>
@@ -227,6 +228,21 @@
         <div class="range-slider-level">
             <input class="input-range-level input-range" type="range" value="50" min="0" max="100">
             <input class="input-field-level input-field" type="text" value="">
+        </div>
+    </div>
+
+    <div id="video-container" class="main-container">
+        <div class="close-button" id="close-video">
+            <img src="src/Assets/Images/TopMenu/close-info.png" class="close-img">
+        </div>
+        <div id="title" class="row">
+            <div class="section-text">
+                <div class="explain">TUTORIAL</div>
+            </div>
+        </div>
+        <div id="video-wrapper">
+            <iframe src="" frameborder="0"
+                    allowfullscreen id="youtube-video"></iframe>
         </div>
     </div>
 </div>

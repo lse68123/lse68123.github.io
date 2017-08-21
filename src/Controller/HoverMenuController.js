@@ -75,38 +75,44 @@ var GTE;
             var _this = this;
             // Add node button functionality
             this.plusButton.events.onInputDown.add(function () {
-                if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length !== 0) {
-                    _this.userActionController.addNodesHandler();
-                }
-                else if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length === 0) {
-                    _this.userActionController.addNodesHandler(_this.previouslyHoveredSprite);
-                }
-                else if (_this.previouslyHoveredSprite instanceof GTE.ISetView) {
-                    //A hack in order not to break the information set.
-                    _this.userActionController.treeController.selectedNodes = _this.previouslyHoveredSprite.nodes.slice(0);
-                    _this.userActionController.addNodesHandler();
-                    _this.userActionController.treeController.emptySelectedNodes();
+                if (_this.buttonsGroup.alpha === 1) {
+                    if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length !== 0) {
+                        _this.userActionController.addNodesHandler();
+                    }
+                    else if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length === 0) {
+                        _this.userActionController.addNodesHandler(_this.previouslyHoveredSprite);
+                    }
+                    else if (_this.previouslyHoveredSprite instanceof GTE.ISetView) {
+                        //A hack in order not to break the information set.
+                        _this.userActionController.treeController.emptySelectedNodes();
+                        _this.userActionController.treeController.selectedNodes = _this.previouslyHoveredSprite.nodes.slice(0);
+                        _this.userActionController.addNodesHandler();
+                        _this.userActionController.treeController.emptySelectedNodes();
+                    }
                 }
             });
             // Remove node button functionality
             this.minusButton.events.onInputDown.add(function () {
-                if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length !== 0) {
-                    _this.userActionController.deleteNodeHandler();
-                }
-                else if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length === 0) {
-                    _this.userActionController.deleteNodeHandler(_this.previouslyHoveredSprite);
-                }
-                else if (_this.previouslyHoveredSprite instanceof GTE.ISetView) {
-                    var nodes = _this.previouslyHoveredSprite.nodes;
-                    if (nodes[0].node.children.length > 1) {
-                        var nodesToDelete_1 = [];
-                        nodes.forEach(function (n) {
-                            nodesToDelete_1.push(_this.userActionController.treeController.treeView.findNodeView(n.node.children[n.node.children.length - 1]));
-                        });
-                        // Same hack as above
-                        _this.userActionController.treeController.selectedNodes = nodesToDelete_1.slice(0);
+                if (_this.buttonsGroup.alpha === 1) {
+                    if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length !== 0) {
                         _this.userActionController.deleteNodeHandler();
-                        _this.userActionController.treeController.emptySelectedNodes();
+                    }
+                    else if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length === 0) {
+                        _this.userActionController.deleteNodeHandler(_this.previouslyHoveredSprite);
+                    }
+                    else if (_this.previouslyHoveredSprite instanceof GTE.ISetView) {
+                        var nodes = _this.previouslyHoveredSprite.nodes;
+                        if (nodes[0].node.children.length > 1) {
+                            var nodesToDelete_1 = [];
+                            nodes.forEach(function (n) {
+                                nodesToDelete_1.push(_this.userActionController.treeController.treeView.findNodeView(n.node.children[n.node.children.length - 1]));
+                            });
+                            // Same hack as above
+                            _this.userActionController.treeController.emptySelectedNodes();
+                            _this.userActionController.treeController.selectedNodes = nodesToDelete_1.slice(0);
+                            _this.userActionController.deleteNodeHandler();
+                            _this.userActionController.treeController.emptySelectedNodes();
+                        }
                     }
                 }
             });
@@ -119,42 +125,52 @@ var GTE;
             });
             playerButtons.forEach(function (btn) {
                 btn.events.onInputDown.add(function () {
-                    if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length !== 0) {
-                        _this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1);
-                    }
-                    else if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length === 0) {
-                        _this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1, _this.previouslyHoveredSprite);
-                    }
-                    else if (_this.previouslyHoveredSprite instanceof GTE.ISetView) {
-                        var nodes = _this.previouslyHoveredSprite.nodes;
-                        nodes.forEach(function (n) {
-                            _this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1, n);
-                        });
+                    if (_this.buttonsGroup.alpha === 1) {
+                        if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length !== 0) {
+                            _this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1);
+                        }
+                        else if (_this.previouslyHoveredSprite instanceof GTE.NodeView && _this.selectedNodesSprites.length === 0) {
+                            _this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1, _this.previouslyHoveredSprite);
+                        }
+                        else if (_this.previouslyHoveredSprite instanceof GTE.ISetView) {
+                            var nodes = _this.previouslyHoveredSprite.nodes;
+                            nodes.forEach(function (n) {
+                                _this.userActionController.assignPlayerToNodeHandler(playerButtons.indexOf(btn) + 1, n);
+                            });
+                        }
                     }
                 });
             });
             // Chance player button functionality
             this.chancePlayerButton.events.onInputDown.add(function () {
-                if (_this.previouslyHoveredSprite instanceof GTE.NodeView) {
-                    _this.userActionController.assignChancePlayerToNodeHandler(_this.previouslyHoveredSprite);
+                if (_this.buttonsGroup.alpha === 1) {
+                    if (_this.previouslyHoveredSprite instanceof GTE.NodeView) {
+                        _this.userActionController.assignChancePlayerToNodeHandler(_this.previouslyHoveredSprite);
+                    }
                 }
             });
             // Adding Information sets functionality
             this.linkButton.events.onInputDown.add(function () {
-                _this.userActionController.createISetHandler();
+                if (_this.buttonsGroup.alpha === 1) {
+                    _this.userActionController.createISetHandler();
+                }
             });
             // Removing information sets functionality
             this.unlinkButton.events.onInputDown.add(function () {
-                if (_this.previouslyHoveredSprite instanceof GTE.NodeView) {
-                    _this.userActionController.removeISetHandler(_this.previouslyHoveredSprite.node.iSet);
-                }
-                else if (_this.previouslyHoveredSprite instanceof GTE.ISetView) {
-                    _this.userActionController.removeISetHandler(_this.previouslyHoveredSprite.iSet);
+                if (_this.buttonsGroup.alpha === 1) {
+                    if (_this.previouslyHoveredSprite instanceof GTE.NodeView) {
+                        _this.userActionController.removeISetHandler(_this.previouslyHoveredSprite.node.iSet);
+                    }
+                    else if (_this.previouslyHoveredSprite instanceof GTE.ISetView) {
+                        _this.userActionController.removeISetHandler(_this.previouslyHoveredSprite.iSet);
+                    }
                 }
             });
             // Cut Sprite functionality
             this.cutButton.events.onInputDown.add(function () {
-                _this.userActionController.initiateCutSpriteHandler(_this.previouslyHoveredSprite);
+                if (_this.buttonsGroup.alpha === 1) {
+                    _this.userActionController.initiateCutSpriteHandler(_this.previouslyHoveredSprite);
+                }
             });
             // Clear the menu after clicking every button.
             this.buttonsArray.forEach(function (btn) {

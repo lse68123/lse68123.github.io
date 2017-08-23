@@ -74,6 +74,10 @@ var GTE;
             //    this.game.debug.spriteBounds(i.ownerLabel,"#ff0000",false);
             // });
             // }
+            // if(this.userActionController.undoRedoController){
+            //     this.game.debug.text(this.userActionController.undoRedoController.treesList.length+" "+this.userActionController.undoRedoController.treeCoordinates.length, 20,40, "#ff0000", "20px Arial");
+            //
+            // }
         };
         return MainScene;
     }(Phaser.State));

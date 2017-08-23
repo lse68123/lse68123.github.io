@@ -174,15 +174,19 @@ var GTE;
             //----------------------------------------------------------------------------------------------------------
             this.upKey.onUp.add(function () {
                 _this.userActionController.undoRedoController.saveNewTree(true);
+                console.log(_this.userActionController.undoRedoController.treeCoordinates);
             });
             this.downKey.onUp.add(function () {
                 _this.userActionController.undoRedoController.saveNewTree(true);
+                console.log(_this.userActionController.undoRedoController.treeCoordinates);
             });
             this.leftKey.onUp.add(function () {
                 _this.userActionController.undoRedoController.saveNewTree(true);
+                console.log(_this.userActionController.undoRedoController.treeCoordinates);
             });
             this.rightKey.onUp.add(function () {
                 _this.userActionController.undoRedoController.saveNewTree(true);
+                console.log(_this.userActionController.undoRedoController.treeCoordinates);
             });
             this.upKey.onDown.add(function () {
                 if (!_this.userActionController.treeController.labelInput.active) {

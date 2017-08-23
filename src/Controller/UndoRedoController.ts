@@ -77,7 +77,7 @@ module GTE {
                 this.treeController.treeView.nodes.forEach((n:NodeView)=>{
                    coordsArray.push({x:n.position.x,y:n.position.y});
                 });
-                this.treeCoordinates[this.currentTreeIndex]=coordsArray;
+                this.treeCoordinates[this.currentTreeIndex+1]=coordsArray;
             }
                 this.resetUndoReddoButtons();
             this.currentTreeIndex++;

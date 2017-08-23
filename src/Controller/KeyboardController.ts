@@ -217,18 +217,22 @@ module GTE {
             //----------------------------------------------------------------------------------------------------------
             this.upKey.onUp.add(()=>{
                 this.userActionController.undoRedoController.saveNewTree(true);
+                console.log(this.userActionController.undoRedoController.treeCoordinates);
             });
 
             this.downKey.onUp.add(()=>{
                 this.userActionController.undoRedoController.saveNewTree(true);
+                console.log(this.userActionController.undoRedoController.treeCoordinates);
             });
 
             this.leftKey.onUp.add(()=>{
                 this.userActionController.undoRedoController.saveNewTree(true);
+                console.log(this.userActionController.undoRedoController.treeCoordinates);
             });
 
             this.rightKey.onUp.add(()=>{
                 this.userActionController.undoRedoController.saveNewTree(true);
+                console.log(this.userActionController.undoRedoController.treeCoordinates);
             });
 
 

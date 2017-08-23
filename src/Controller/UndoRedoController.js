@@ -64,7 +64,7 @@ var GTE;
                 this.treeController.treeView.nodes.forEach(function (n) {
                     coordsArray_1.push({ x: n.position.x, y: n.position.y });
                 });
-                this.treeCoordinates[this.currentTreeIndex] = coordsArray_1;
+                this.treeCoordinates[this.currentTreeIndex + 1] = coordsArray_1;
             }
             this.resetUndoReddoButtons();
             this.currentTreeIndex++;
